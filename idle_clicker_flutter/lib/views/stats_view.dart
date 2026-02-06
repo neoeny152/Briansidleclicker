@@ -68,6 +68,32 @@ class StatsView extends StatelessWidget {
 
               const SizedBox(height: 15),
 
+              // Dip Stats
+              if (viewModel.gameState.totalDips > 0)
+                _StatsCard(
+                  title: 'Buy the Dip Stats',
+                  stats: [
+                    _StatItem(
+                      'Total Dips',
+                      '${viewModel.gameState.totalDips}',
+                    ),
+                    _StatItem(
+                      'Dip Winnings',
+                      '\$${FormattingUtils.formatNumber(viewModel.gameState.totalDipWinnings)}',
+                    ),
+                    _StatItem(
+                      'Dip Losses',
+                      '\$${FormattingUtils.formatNumber(viewModel.gameState.totalDipLosses)}',
+                    ),
+                    _StatItem(
+                      'Net Dip P/L',
+                      '\$${FormattingUtils.formatNumber(viewModel.gameState.totalDipWinnings - viewModel.gameState.totalDipLosses)}',
+                    ),
+                  ],
+                ),
+
+              if (viewModel.gameState.totalDips > 0) const SizedBox(height: 15),
+
               // Bot Stats
               if (viewModel.gameState.botEnabled)
                 _StatsCard(

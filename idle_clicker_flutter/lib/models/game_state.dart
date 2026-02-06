@@ -34,6 +34,13 @@ class GameState {
   double experienceMultiplier; // Permanent edge bonus from crashes
   double totalLifetimeEarnings; // Tracks all-time for crash rewards
 
+  // Buy the Dip
+  DateTime? dipCooldownEndTime; // When cooldown expires (null = ready)
+  int dipStreak; // Times bought dip during current cooldown (increases risk)
+  int totalDips; // All-time dip attempts
+  double totalDipWinnings;
+  double totalDipLosses;
+
   // Meta
   DateTime lastSaveTime;
 
@@ -57,6 +64,11 @@ class GameState {
     this.crashCount = 0,
     this.experienceMultiplier = 1.0,
     this.totalLifetimeEarnings = 0,
+    this.dipCooldownEndTime,
+    this.dipStreak = 0,
+    this.totalDips = 0,
+    this.totalDipWinnings = 0,
+    this.totalDipLosses = 0,
     DateTime? lastSaveTime,
   })  : botUpgrades = botUpgrades ?? {},
         symbolEdges = symbolEdges ?? {'stocks': 0},
@@ -90,6 +102,11 @@ class GameState {
         'crashCount': crashCount,
         'experienceMultiplier': experienceMultiplier,
         'totalLifetimeEarnings': totalLifetimeEarnings,
+        'dipCooldownEndTime': dipCooldownEndTime?.toIso8601String(),
+        'dipStreak': dipStreak,
+        'totalDips': totalDips,
+        'totalDipWinnings': totalDipWinnings,
+        'totalDipLosses': totalDipLosses,
         'lastSaveTime': lastSaveTime.toIso8601String(),
       };
 
@@ -118,6 +135,13 @@ class GameState {
       crashCount: (json['crashCount'] as int?) ?? 0,
       experienceMultiplier: (json['experienceMultiplier'] as num?)?.toDouble() ?? 1.0,
       totalLifetimeEarnings: (json['totalLifetimeEarnings'] as num?)?.toDouble() ?? 0,
+      dipCooldownEndTime: json['dipCooldownEndTime'] != null
+          ? DateTime.parse(json['dipCooldownEndTime'] as String)
+          : null,
+      dipStreak: (json['dipStreak'] as int?) ?? 0,
+      totalDips: (json['totalDips'] as int?) ?? 0,
+      totalDipWinnings: (json['totalDipWinnings'] as num?)?.toDouble() ?? 0,
+      totalDipLosses: (json['totalDipLosses'] as num?)?.toDouble() ?? 0,
       lastSaveTime: json['lastSaveTime'] != null
           ? DateTime.parse(json['lastSaveTime'] as String)
           : DateTime.now(),

@@ -16,6 +16,22 @@ class TradeOutcome {
   TradeOutcome({required this.result, required this.amount, required this.isWin});
 }
 
+enum DipResult { wipe, bigLoss, smallLoss, smallWin, bigWin, jackpot }
+
+class DipOutcome {
+  final DipResult result;
+  final double amount;
+  final bool isWin;
+  final int streakUsed; // What streak level was used
+
+  DipOutcome({
+    required this.result,
+    required this.amount,
+    required this.isWin,
+    required this.streakUsed,
+  });
+}
+
 class GameViewModel extends ChangeNotifier {
   GameState gameState = GameState();
   final StorageService _storage = StorageService();
@@ -27,6 +43,9 @@ class GameViewModel extends ChangeNotifier {
 
   // Last trade result for UI feedback
   TradeOutcome? lastTradeOutcome;
+
+  // Last dip result for UI feedback
+  DipOutcome? lastDipOutcome;
 
   // Work state
   bool isWorking = false;
@@ -294,6 +313,133 @@ class GameViewModel extends ChangeNotifier {
     if (gameState.unlockedSymbols[symbolId] != true) return;
     gameState.activeSymbol = symbolId;
     notifyListeners();
+  }
+
+  // Buy the Dip
+  bool get isDipOnCooldown {
+    if (gameState.dipCooldownEndTime == null) return false;
+    return DateTime.now().isBefore(gameState.dipCooldownEndTime!);
+  }
+
+  int get dipCooldownSecondsRemaining {
+    if (gameState.dipCooldownEndTime == null) return 0;
+    final remaining = gameState.dipCooldownEndTime!.difference(DateTime.now()).inSeconds;
+    return remaining > 0 ? remaining : 0;
+  }
+
+  int get dipStreak => gameState.dipStreak;
+
+  DipOutcome buyTheDip() {
+    if (gameState.balance <= 0) {
+      // Can't dip with no money
+      return DipOutcome(
+        result: DipResult.smallLoss,
+        amount: 0,
+        isWin: false,
+        streakUsed: 0,
+      );
+    }
+
+    final currentStreak = isDipOnCooldown ? gameState.dipStreak : 0;
+    final roll = _random.nextDouble();
+
+    DipResult result;
+    double multiplier;
+
+    if (currentStreak == 0) {
+      // Safe dip (not on cooldown)
+      // 35% lose 20-40%, 30% win 30-60%, 25% win 60-120%, 10% win 150-250%
+      if (roll < 0.35) {
+        result = DipResult.smallLoss;
+        multiplier = -(0.2 + _random.nextDouble() * 0.2);
+      } else if (roll < 0.65) {
+        result = DipResult.smallWin;
+        multiplier = 0.3 + _random.nextDouble() * 0.3;
+      } else if (roll < 0.90) {
+        result = DipResult.bigWin;
+        multiplier = 0.6 + _random.nextDouble() * 0.6;
+      } else {
+        result = DipResult.jackpot;
+        multiplier = 1.5 + _random.nextDouble() * 1.0;
+      }
+    } else if (currentStreak == 1) {
+      // Risky dip (first during cooldown)
+      // 10% wipe, 30% lose 40-70%, 25% win 50-100%, 25% win 100-200%, 10% jackpot 250-400%
+      if (roll < 0.10) {
+        result = DipResult.wipe;
+        multiplier = -1.0; // Lose everything
+      } else if (roll < 0.40) {
+        result = DipResult.bigLoss;
+        multiplier = -(0.4 + _random.nextDouble() * 0.3);
+      } else if (roll < 0.65) {
+        result = DipResult.smallWin;
+        multiplier = 0.5 + _random.nextDouble() * 0.5;
+      } else if (roll < 0.90) {
+        result = DipResult.bigWin;
+        multiplier = 1.0 + _random.nextDouble() * 1.0;
+      } else {
+        result = DipResult.jackpot;
+        multiplier = 2.5 + _random.nextDouble() * 1.5;
+      }
+    } else {
+      // Dangerous dip (2+ during cooldown)
+      // 25% wipe, 30% lose 60-90%, 15% win 100-200%, 20% win 200-400%, 10% jackpot 500-1000%
+      if (roll < 0.25) {
+        result = DipResult.wipe;
+        multiplier = -1.0;
+      } else if (roll < 0.55) {
+        result = DipResult.bigLoss;
+        multiplier = -(0.6 + _random.nextDouble() * 0.3);
+      } else if (roll < 0.70) {
+        result = DipResult.smallWin;
+        multiplier = 1.0 + _random.nextDouble() * 1.0;
+      } else if (roll < 0.90) {
+        result = DipResult.bigWin;
+        multiplier = 2.0 + _random.nextDouble() * 2.0;
+      } else {
+        result = DipResult.jackpot;
+        multiplier = 5.0 + _random.nextDouble() * 5.0;
+      }
+    }
+
+    final amount = gameState.balance * multiplier;
+    final isWin = amount > 0;
+
+    // Apply to balance
+    gameState.balance += amount;
+    if (gameState.balance < 0) gameState.balance = 0;
+
+    // Update stats
+    gameState.totalDips++;
+    if (isWin) {
+      gameState.totalDipWinnings += amount;
+      gameState.totalLifetimeEarnings += amount;
+      gameState.totalEarned += amount;
+    } else {
+      gameState.totalDipLosses += amount.abs();
+      gameState.totalLost += amount.abs();
+    }
+
+    // Update cooldown and streak
+    if (isDipOnCooldown) {
+      // Increase streak
+      gameState.dipStreak++;
+    } else {
+      // Start new cooldown
+      gameState.dipStreak = 1;
+    }
+    // Reset/extend cooldown timer (30 seconds)
+    gameState.dipCooldownEndTime = DateTime.now().add(const Duration(seconds: 30));
+
+    lastDipOutcome = DipOutcome(
+      result: result,
+      amount: amount,
+      isWin: isWin,
+      streakUsed: currentStreak,
+    );
+
+    notifyListeners();
+    return lastDipOutcome!;
   }
 
   // Market Crash (Prestige)

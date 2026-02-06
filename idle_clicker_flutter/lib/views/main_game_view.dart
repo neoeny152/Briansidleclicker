@@ -43,6 +43,39 @@ class _MainGameViewState extends State<MainGameView> with SingleTickerProviderSt
     });
   }
 
+  void _handleDip(GameViewModel viewModel) {
+    final outcome = viewModel.buyTheDip();
+
+    final random = Random();
+    final offsetX = random.nextDouble() * 80 - 40;
+    final offsetY = random.nextDouble() * 30 - 15;
+
+    String text;
+    if (outcome.result == DipResult.wipe) {
+      text = 'WIPED!';
+    } else if (outcome.isWin) {
+      text = '+\$${FormattingUtils.formatNumber(outcome.amount)}';
+    } else {
+      text = '-\$${FormattingUtils.formatNumber(outcome.amount.abs())}';
+    }
+
+    setState(() {
+      if (_floatingNumbers.length > 10) {
+        _floatingNumbers.removeAt(0);
+      }
+      _floatingNumbers.add(_FloatingNumberData(
+        id: _nextId++,
+        text: text,
+        isPositive: outcome.isWin,
+        isJackpot: outcome.result == DipResult.jackpot,
+        position: Offset(
+          MediaQuery.of(context).size.width / 2 + offsetX,
+          MediaQuery.of(context).size.height * 0.5 + offsetY,
+        ),
+      ));
+    });
+  }
+
   void _removeFloatingNumber(int id) {
     setState(() {
       _floatingNumbers.removeWhere((n) => n.id == id);
@@ -242,7 +275,15 @@ class _MainGameViewState extends State<MainGameView> with SingleTickerProviderSt
                       ),
                     ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
+
+                  // Buy the Dip Button
+                  _BuyTheDipButton(
+                    viewModel: viewModel,
+                    onDip: () => _handleDip(viewModel),
+                  ),
+
+                  const SizedBox(height: 12),
 
                   // Bot Status
                   if (viewModel.gameState.botEnabled)
@@ -327,12 +368,14 @@ class _FloatingNumberData {
   final String text;
   final bool isPositive;
   final Offset position;
+  final bool isJackpot;
 
   _FloatingNumberData({
     required this.id,
     required this.text,
     required this.isPositive,
     required this.position,
+    this.isJackpot = false,
   });
 }
 
@@ -415,6 +458,119 @@ class _FloatingNumberState extends State<_FloatingNumber>
           ),
         );
       },
+    );
+  }
+}
+
+class _BuyTheDipButton extends StatelessWidget {
+  final GameViewModel viewModel;
+  final VoidCallback onDip;
+
+  const _BuyTheDipButton({
+    required this.viewModel,
+    required this.onDip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isOnCooldown = viewModel.isDipOnCooldown;
+    final cooldownSeconds = viewModel.dipCooldownSecondsRemaining;
+    final streak = viewModel.dipStreak;
+    final canDip = viewModel.gameState.balance > 0;
+
+    // Determine risk level and colors
+    Color buttonColor;
+    Color borderColor;
+    String riskLabel;
+
+    if (!isOnCooldown) {
+      buttonColor = const Color(0xFF0F3460);
+      borderColor = const Color(0xFFFFD700);
+      riskLabel = 'Safe Dip';
+    } else if (streak == 1) {
+      buttonColor = const Color(0xFF2D1B4E);
+      borderColor = const Color(0xFFFF8C00);
+      riskLabel = 'Risky! (${cooldownSeconds}s)';
+    } else {
+      buttonColor = const Color(0xFF4A1515);
+      borderColor = const Color(0xFFE94560);
+      riskLabel = 'DANGER! x$streak (${cooldownSeconds}s)';
+    }
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: buttonColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor, width: 2),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: canDip ? onDip : null,
+          borderRadius: BorderRadius.circular(10),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  isOnCooldown ? '📉' : '📈',
+                  style: const TextStyle(fontSize: 24),
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'BUY THE DIP',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: canDip ? Colors.white : const Color(0xFF666666),
+                      ),
+                    ),
+                    Text(
+                      riskLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isOnCooldown && streak > 1
+                            ? const Color(0xFFE94560)
+                            : isOnCooldown
+                                ? const Color(0xFFFF8C00)
+                                : const Color(0xFFFFD700),
+                        fontWeight: isOnCooldown ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+                if (isOnCooldown) ...[
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: streak > 1
+                          ? const Color(0xFFE94560).withOpacity(0.3)
+                          : const Color(0xFFFF8C00).withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      streak > 1 ? 'WIPE RISK' : '10% WIPE',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: streak > 1
+                            ? const Color(0xFFE94560)
+                            : const Color(0xFFFF8C00),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
