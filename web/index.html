@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Coin Clicker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header Stats -->
+        <header id="header">
+            <div id="coin-display">
+                <span id="coins">0</span> coins
+            </div>
+            <div id="rate-display">
+                <span id="per-click">1</span>/click | <span id="per-second">0</span>/sec
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <main id="game-area">
+            <div id="clicker-container">
+                <button id="coin-button">
+                    <div class="coin-inner">$</div>
+                </button>
+                <div id="click-particles"></div>
+            </div>
+        </main>
+
+        <!-- Tab Navigation -->
+        <nav id="tabs">
+            <button class="tab active" data-tab="generators">Generators</button>
+            <button class="tab" data-tab="upgrades">Upgrades</button>
+            <button class="tab" data-tab="stats">Stats</button>
+        </nav>
+
+        <!-- Tab Content -->
+        <section id="tab-content">
+            <!-- Generators Tab -->
+            <div id="generators-tab" class="tab-pane active">
+                <div id="generators-list"></div>
+            </div>
+
+            <!-- Upgrades Tab -->
+            <div id="upgrades-tab" class="tab-pane">
+                <div id="upgrades-list"></div>
+            </div>
+
+            <!-- Stats Tab -->
+            <div id="stats-tab" class="tab-pane">
+                <div class="stats-grid">
+                    <div class="stat-row">
+                        <span>Total Coins Earned</span>
+                        <span id="stat-total-coins">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Total Clicks</span>
+                        <span id="stat-total-clicks">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Click Multiplier</span>
+                        <span id="stat-click-mult">1x</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Global Multiplier</span>
+                        <span id="stat-global-mult">1x</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Prestige Points</span>
+                        <span id="stat-prestige-points">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Prestige Multiplier</span>
+                        <span id="stat-prestige-mult">1x</span>
+                    </div>
+                </div>
+                <div id="prestige-section">
+                    <p id="prestige-info">Earn 1 billion coins to unlock prestige</p>
+                    <button id="prestige-button" disabled>
+                        Prestige (+<span id="prestige-potential">0</span> points)
+                    </button>
+                </div>
+                <div class="stats-actions">
+                    <button id="save-button">Save Game</button>
+                    <button id="reset-button">Reset Game</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

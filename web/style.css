@@ -1,0 +1,431 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-dark: #1a1a2e;
+    --bg-card: #16213e;
+    --bg-lighter: #0f3460;
+    --accent: #e94560;
+    --gold: #ffd700;
+    --gold-dark: #b8960b;
+    --text: #eee;
+    --text-dim: #888;
+    --success: #4ade80;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+#app {
+    max-width: 500px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+#header {
+    padding: 20px;
+    text-align: center;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--bg-lighter);
+}
+
+#coin-display {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--gold);
+}
+
+#rate-display {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-top: 5px;
+}
+
+/* Main Game Area */
+#game-area {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-dark) 100%);
+}
+
+#clicker-container {
+    position: relative;
+}
+
+#coin-button {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 4px solid var(--gold-dark);
+    background: linear-gradient(145deg, var(--gold), var(--gold-dark));
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#coin-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 30px rgba(255, 215, 0, 0.4);
+}
+
+#coin-button:active {
+    transform: scale(0.95);
+    box-shadow: 0 4px 10px rgba(255, 215, 0, 0.3);
+}
+
+.coin-inner {
+    font-size: 4rem;
+    font-weight: bold;
+    color: var(--gold-dark);
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+    user-select: none;
+}
+
+/* Click Particles */
+#click-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.particle {
+    position: absolute;
+    font-weight: bold;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    animation: float-up 1s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes float-up {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-80px) scale(1.5);
+    }
+}
+
+/* Tab Navigation */
+#tabs {
+    display: flex;
+    background: var(--bg-card);
+    border-top: 1px solid var(--bg-lighter);
+    border-bottom: 1px solid var(--bg-lighter);
+}
+
+.tab {
+    flex: 1;
+    padding: 15px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab:hover {
+    color: var(--text);
+    background: var(--bg-lighter);
+}
+
+.tab.active {
+    color: var(--gold);
+    background: var(--bg-lighter);
+    border-bottom: 2px solid var(--gold);
+}
+
+/* Tab Content */
+#tab-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Generator & Upgrade Cards */
+.item-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid var(--bg-lighter);
+    transition: all 0.2s;
+}
+
+.item-card:hover {
+    border-color: var(--gold);
+}
+
+.item-card.locked {
+    opacity: 0.5;
+}
+
+.item-card.affordable {
+    border-color: var(--success);
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
+}
+
+.item-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    background: var(--bg-lighter);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.item-name {
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.item-owned {
+    background: var(--bg-lighter);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+.item-desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 3px;
+}
+
+.item-production {
+    font-size: 0.75rem;
+    color: var(--success);
+    margin-top: 3px;
+}
+
+.item-price {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.price-value {
+    font-weight: bold;
+    color: var(--gold);
+}
+
+.price-value.expensive {
+    color: var(--accent);
+}
+
+.buy-button {
+    margin-top: 5px;
+    padding: 6px 16px;
+    border: none;
+    border-radius: 6px;
+    background: var(--success);
+    color: #000;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.buy-button:hover:not(:disabled) {
+    transform: scale(1.05);
+}
+
+.buy-button:disabled {
+    background: var(--bg-lighter);
+    color: var(--text-dim);
+    cursor: not-allowed;
+}
+
+/* Upgrade specific */
+.upgrade-card.purchased {
+    opacity: 0.6;
+    border-color: var(--success);
+}
+
+.upgrade-card.purchased .buy-button {
+    background: var(--success);
+}
+
+/* Stats */
+.stats-grid {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--bg-lighter);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-row span:last-child {
+    color: var(--gold);
+    font-weight: 600;
+}
+
+/* Prestige Section */
+#prestige-section {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 15px;
+    border: 1px solid var(--bg-lighter);
+}
+
+#prestige-info {
+    color: var(--text-dim);
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+#prestige-button {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(145deg, #9333ea, #7c3aed);
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#prestige-button:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
+}
+
+#prestige-button:disabled {
+    background: var(--bg-lighter);
+    color: var(--text-dim);
+    cursor: not-allowed;
+}
+
+.stats-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.stats-actions button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#save-button {
+    background: var(--bg-lighter);
+    color: var(--text);
+}
+
+#save-button:hover {
+    background: var(--success);
+    color: #000;
+}
+
+#reset-button {
+    background: var(--bg-lighter);
+    color: var(--accent);
+}
+
+#reset-button:hover {
+    background: var(--accent);
+    color: white;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bg-lighter);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-dim);
+}
+
+/* Mobile Adjustments */
+@media (max-width: 400px) {
+    #coin-button {
+        width: 120px;
+        height: 120px;
+    }
+
+    .coin-inner {
+        font-size: 3rem;
+    }
+
+    .item-card {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .item-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+}
