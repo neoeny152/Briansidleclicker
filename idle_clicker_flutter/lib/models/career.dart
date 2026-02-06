@@ -36,8 +36,8 @@ class CareerLevel {
       emoji: '📋',
       baseWage: 5.0,
       clickWage: 0.25,
-      promotionCost: 50,
-      workSessionsRequired: 5,
+      promotionCost: 25, // Faster early game!
+      workSessionsRequired: 3, // Quick first promotion
       canTradeAtWork: false, // They're watching you
     ),
     CareerLevel(
@@ -46,8 +46,8 @@ class CareerLevel {
       emoji: '💼',
       baseWage: 8.0,
       clickWage: 0.40,
-      promotionCost: 200,
-      workSessionsRequired: 15,
+      promotionCost: 100, // Was 200
+      workSessionsRequired: 8, // Was 15
       canTradeAtWork: false, // Still being monitored
     ),
     CareerLevel(
@@ -56,8 +56,8 @@ class CareerLevel {
       emoji: '👔',
       baseWage: 15.0,
       clickWage: 0.75,
-      promotionCost: 800,
-      workSessionsRequired: 30,
+      promotionCost: 400, // Was 800
+      workSessionsRequired: 20, // Was 30
       canTradeAtWork: false, // Open office, no privacy
     ),
     CareerLevel(
@@ -66,8 +66,8 @@ class CareerLevel {
       emoji: '📊',
       baseWage: 25.0,
       clickWage: 1.25,
-      promotionCost: 3000,
-      workSessionsRequired: 60,
+      promotionCost: 2000, // Was 3000
+      workSessionsRequired: 40, // Was 60
       canTradeAtWork: true, // You have your own desk now
     ),
     CareerLevel(
@@ -76,8 +76,8 @@ class CareerLevel {
       emoji: '👨‍💼',
       baseWage: 45.0,
       clickWage: 2.25,
-      promotionCost: 12000,
-      workSessionsRequired: 100,
+      promotionCost: 10000, // Was 12000
+      workSessionsRequired: 80, // Was 100
       canTradeAtWork: true, // Private office
     ),
     CareerLevel(

@@ -144,6 +144,14 @@ class _CareerTab extends StatelessWidget {
                       color: Color(0xFF4ADE80),
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '+ \$${FormattingUtils.formatNumber(viewModel.currentClickWage)} per click during work',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFFFFD700),
+                    ),
+                  ),
                   const SizedBox(height: 15),
                   // Progress to next level
                   if (nextCareer != null) ...[
@@ -224,9 +232,9 @@ class _CareerTab extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                'Wage: \$${FormattingUtils.formatNumber(nextCareer.baseWage)}/shift',
+                                'Wage: \$${FormattingUtils.formatNumber(nextCareer.baseWage)}/shift + \$${FormattingUtils.formatNumber(nextCareer.clickWage)}/click',
                                 style: const TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 12,
                                   color: Color(0xFF4ADE80),
                                 ),
                               ),
