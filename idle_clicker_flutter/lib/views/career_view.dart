@@ -264,6 +264,8 @@ class _JobTab extends StatelessWidget {
                             foregroundColor: Colors.black,
                             disabledBackgroundColor: const Color(0xFF0F3460),
                             disabledForegroundColor: const Color(0xFF888888),
+                            elevation: 0,
+                            shadowColor: Colors.transparent,
                           ),
                           child: const Text('PROMOTE'),
                         ),
@@ -348,6 +350,8 @@ class _YouTubeTab extends StatelessWidget {
                       backgroundColor: const Color(0xFFFF0000),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
                     ),
                     child: const Text('Start Channel (\$200)'),
                   ),
@@ -520,6 +524,8 @@ class _YouTubeTab extends StatelessWidget {
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: const Color(0xFF0F3460),
                 padding: const EdgeInsets.symmetric(vertical: 15),
+                elevation: 0,
+                shadowColor: Colors.transparent,
               ),
             ),
 
@@ -590,6 +596,8 @@ class _YouTubeTab extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFE94560),
                         foregroundColor: Colors.white,
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
                       ),
                       child: const Column(
                         children: [
@@ -619,6 +627,8 @@ class _YouTubeTab extends StatelessWidget {
                         backgroundColor: const Color(0xFF4ADE80),
                         foregroundColor: Colors.white,
                         disabledBackgroundColor: const Color(0xFF0F3460),
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
                       ),
                       child: const Column(
                         children: [

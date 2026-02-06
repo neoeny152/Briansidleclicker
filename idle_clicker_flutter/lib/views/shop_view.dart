@@ -278,6 +278,8 @@ class _CourseCard extends StatelessWidget {
                         horizontal: 16,
                         vertical: 8,
                       ),
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
                     ),
                     child: const Text(
                       'Enroll',
@@ -575,6 +577,8 @@ class _UpgradeCard extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(6),
                       ),
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
                     ),
                     child: const Text(
                       'Buy',
@@ -693,6 +697,8 @@ class _SymbolCard extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
                 ),
                 child: Text(
                   isActive ? 'Active' : 'Select',
@@ -729,6 +735,8 @@ class _SymbolCard extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(6),
                       ),
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
                     ),
                     child: const Text(
                       'Unlock',

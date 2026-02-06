@@ -397,6 +397,8 @@ class _MainGameViewState extends State<MainGameView> with SingleTickerProviderSt
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
                         ),
                       ),
                     ),
