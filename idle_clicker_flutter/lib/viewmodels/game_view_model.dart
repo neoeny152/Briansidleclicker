@@ -6,6 +6,7 @@ import '../models/trading_symbol.dart';
 import '../models/bot_upgrade.dart';
 import '../models/career.dart';
 import '../models/online_course.dart';
+import '../models/youtube_career.dart';
 import '../services/storage_service.dart';
 
 enum TradeResult { bigLoss, smallLoss, smallWin, goodWin, bigWin }
@@ -76,6 +77,8 @@ class GameViewModel extends ChangeNotifier {
   }
 
   void _tick() {
+    bool changed = false;
+
     // Bot trading
     if (gameState.botEnabled && gameState.botTradesPerSecond > 0) {
       // Calculate trades this tick (0.1 second)
@@ -93,6 +96,29 @@ class GameViewModel extends ChangeNotifier {
         _executeTrade(isBot: true);
       }
 
+      changed = true;
+    }
+
+    // YouTube ad revenue (passive income, collected every tick)
+    if (youtubeLevel.canMonetize) {
+      final adRev = pendingAdRevenue;
+      if (adRev > 0) {
+        gameState.balance += adRev;
+        gameState.youtubeRevenue += adRev;
+        gameState.totalLifetimeEarnings += adRev;
+        changed = true;
+      }
+    }
+
+    // Affiliate income (credibility bonus)
+    final affIncome = affiliateIncome * 0.1; // Per tick (10 ticks/sec)
+    if (affIncome > 0) {
+      gameState.balance += affIncome;
+      gameState.totalLifetimeEarnings += affIncome;
+      changed = true;
+    }
+
+    if (changed) {
       notifyListeners();
     }
   }
@@ -386,6 +412,184 @@ class GameViewModel extends ChangeNotifier {
     return !course.isScam;
   }
 
+  // YouTube Career
+  YouTubeLevel get youtubeLevel => YouTubeLevel.getLevel(gameState.subscribers);
+  YouTubeLevel? get nextYoutubeLevel => YouTubeLevel.getNextLevel(gameState.subscribers);
+
+  bool get canStartChannel {
+    if (gameState.hasYouTubeChannel) return false;
+    final starterLevel = YouTubeLevel.allLevels[1]; // "Just Started"
+    return gameState.balance >= starterLevel.unlockCost;
+  }
+
+  void startYouTubeChannel() {
+    if (gameState.hasYouTubeChannel) return;
+    final starterLevel = YouTubeLevel.allLevels[1];
+    if (gameState.balance < starterLevel.unlockCost) return;
+
+    gameState.balance -= starterLevel.unlockCost;
+    gameState.hasYouTubeChannel = true;
+    gameState.subscribers = 0;
+    notifyListeners();
+  }
+
+  bool get canPostVideo {
+    if (!gameState.hasYouTubeChannel) return false;
+    if (gameState.lastVideoPostTime == null) return true;
+    // 30 second cooldown between videos
+    return DateTime.now().difference(gameState.lastVideoPostTime!).inSeconds >= 30;
+  }
+
+  int get videoPostCooldownSeconds {
+    if (gameState.lastVideoPostTime == null) return 0;
+    final elapsed = DateTime.now().difference(gameState.lastVideoPostTime!).inSeconds;
+    return (30 - elapsed).clamp(0, 30);
+  }
+
+  // Post a video - gains subscribers based on edge and hype
+  void postVideo() {
+    if (!canPostVideo) return;
+
+    gameState.totalVideosPosted++;
+    gameState.lastVideoPostTime = DateTime.now();
+
+    // Base subscriber gain
+    int baseGain = 5 + (gameState.totalVideosPosted ~/ 5); // Grows slowly
+
+    // HYPE FACTOR: Bad edge = more exciting content = more growth!
+    // Good traders are "boring" - bad traders show huge wins/losses
+    double hypeFactor = 1.0;
+    if (effectiveEdge < 0) {
+      // Negative edge = more volatile = more exciting content
+      hypeFactor = 1.0 + (effectiveEdge.abs() * 5); // -20% edge = 2x hype
+    } else if (effectiveEdge > 0.1) {
+      // Good edge = boring consistent gains = less exciting
+      hypeFactor = 0.5; // Half the growth
+    }
+
+    // Credibility factor (slight boost for credible creators)
+    double credFactor = 1.0 + (gameState.credibility - 50) / 200; // 0.75x to 1.25x
+
+    // Calculate final subscriber gain
+    int gain = (baseGain * hypeFactor * credFactor).round();
+    gain = gain.clamp(1, 10000); // Min 1, max 10000 per video
+
+    gameState.subscribers += gain;
+
+    // Update credibility based on edge
+    _updateCredibility();
+
+    notifyListeners();
+  }
+
+  void _updateCredibility() {
+    // Credibility moves toward 0 if bad edge, toward 100 if good edge
+    if (effectiveEdge >= 0.05) {
+      // Good edge - build credibility
+      gameState.credibility = (gameState.credibility + 1).clamp(0, 100);
+    } else if (effectiveEdge < -0.05) {
+      // Bad edge - lose credibility
+      gameState.credibility = (gameState.credibility - 0.5).clamp(0, 100);
+    }
+  }
+
+  // Collect ad revenue (passive income based on subscribers)
+  double get pendingAdRevenue {
+    if (!youtubeLevel.canMonetize) return 0;
+    // $0.001 per subscriber per collection (can collect every tick)
+    return gameState.subscribers * 0.0001;
+  }
+
+  void collectAdRevenue() {
+    if (!youtubeLevel.canMonetize) return;
+    final revenue = pendingAdRevenue;
+    if (revenue <= 0) return;
+
+    gameState.balance += revenue;
+    gameState.youtubeRevenue += revenue;
+    gameState.totalLifetimeEarnings += revenue;
+    notifyListeners();
+  }
+
+  // Course creation
+  bool get canCreateCourse => youtubeLevel.canSellCourses;
+
+  // Returns course revenue per sale
+  double getCourseRevenuePerSale(bool isScamCourse) {
+    // Base price based on subscriber count
+    double basePrice = 50 + (gameState.subscribers / 1000);
+
+    if (isScamCourse) {
+      // Scam courses sell for MORE (hype pricing)
+      return basePrice * 2;
+    } else {
+      // Legit courses sell for less but you need good edge
+      return basePrice;
+    }
+  }
+
+  // Calculate expected sales when creating a course
+  int getExpectedCourseSales(bool isScamCourse) {
+    // Base sales = 0.1% of subscribers
+    int baseSales = (gameState.subscribers * 0.001).round();
+
+    if (isScamCourse) {
+      // Scam courses sell more (FOMO marketing)
+      // But credibility affects repeat sales
+      double credPenalty = (100 - gameState.credibility) / 100; // 0 to 1
+      return (baseSales * (1.5 + credPenalty)).round();
+    } else {
+      // Legit courses sell based on credibility
+      double credBonus = gameState.credibility / 100; // 0 to 1
+      return (baseSales * (0.5 + credBonus)).round();
+    }
+  }
+
+  // Create and sell a course (one-time revenue event)
+  double createAndSellCourse(String courseName, bool isScamCourse) {
+    if (!canCreateCourse) return 0;
+
+    final pricePerSale = getCourseRevenuePerSale(isScamCourse);
+    final sales = getExpectedCourseSales(isScamCourse);
+    final totalRevenue = pricePerSale * sales;
+
+    // Record the course
+    gameState.createdCourses.add({
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'name': courseName,
+      'price': pricePerSale,
+      'isScam': isScamCourse,
+      'salesCount': sales,
+      'totalRevenue': totalRevenue,
+      'createdAt': DateTime.now().toIso8601String(),
+    });
+
+    // Add revenue
+    gameState.balance += totalRevenue;
+    gameState.totalCourseRevenue += totalRevenue;
+    gameState.totalLifetimeEarnings += totalRevenue;
+
+    // Credibility impact
+    if (isScamCourse) {
+      // Selling scam courses tanks credibility
+      gameState.credibility = (gameState.credibility - 10).clamp(0, 100);
+    } else {
+      // Selling legit courses builds credibility
+      gameState.credibility = (gameState.credibility + 5).clamp(0, 100);
+    }
+
+    notifyListeners();
+    return totalRevenue;
+  }
+
+  // Credibility bonus: passive income from affiliate deals
+  double get affiliateIncome {
+    if (!gameState.hasYouTubeChannel) return 0;
+    if (gameState.credibility < 60) return 0; // Need decent credibility
+    // $0.10 per credibility point above 60, per 10K subscribers
+    return ((gameState.credibility - 60) * 0.10) * (gameState.subscribers / 10000);
+  }
+
   // Buy the Dip
   bool get isDipOnCooldown {
     if (gameState.dipCooldownEndTime == null) return false;
@@ -524,7 +728,7 @@ class GameViewModel extends ChangeNotifier {
     final bonus = potentialCrashBonus;
     if (bonus <= 0) return;
 
-    // Save prestige data (career and courses persist!)
+    // Save prestige data (career, courses, and YouTube persist!)
     final newCrashCount = gameState.crashCount + 1;
     final newExpMultiplier = 1.0 + (gameState.crashCount + bonus) * 0.05;
     final lifetimeEarnings = gameState.totalLifetimeEarnings;
@@ -532,8 +736,16 @@ class GameViewModel extends ChangeNotifier {
     final savedWorkSessions = gameState.workSessionsAtCurrentLevel;
     final savedCourses = List<String>.from(gameState.purchasedCourses);
     final savedCourseEdge = gameState.courseEdgeBonus;
+    // YouTube persists
+    final savedHasChannel = gameState.hasYouTubeChannel;
+    final savedSubscribers = gameState.subscribers;
+    final savedVideos = gameState.totalVideosPosted;
+    final savedYTRevenue = gameState.youtubeRevenue;
+    final savedCredibility = gameState.credibility;
+    final savedCreatedCourses = List<Map<String, dynamic>>.from(gameState.createdCourses);
+    final savedCourseRev = gameState.totalCourseRevenue;
 
-    // Reset to new game (but keep career and courses)
+    // Reset to new game (but keep career, courses, and YouTube)
     gameState = GameState(
       crashCount: newCrashCount,
       experienceMultiplier: newExpMultiplier,
@@ -542,6 +754,13 @@ class GameViewModel extends ChangeNotifier {
       workSessionsAtCurrentLevel: savedWorkSessions,
       purchasedCourses: savedCourses,
       courseEdgeBonus: savedCourseEdge,
+      hasYouTubeChannel: savedHasChannel,
+      subscribers: savedSubscribers,
+      totalVideosPosted: savedVideos,
+      youtubeRevenue: savedYTRevenue,
+      credibility: savedCredibility,
+      createdCourses: savedCreatedCourses,
+      totalCourseRevenue: savedCourseRev,
     );
 
     saveGame();

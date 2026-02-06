@@ -116,6 +116,41 @@ class StatsView extends StatelessWidget {
 
               if (viewModel.gameState.purchasedCourses.isNotEmpty) const SizedBox(height: 15),
 
+              // YouTube Stats
+              if (viewModel.gameState.hasYouTubeChannel)
+                _StatsCard(
+                  title: 'YouTube Channel',
+                  stats: [
+                    _StatItem(
+                      'Level',
+                      '${viewModel.youtubeLevel.emoji} ${viewModel.youtubeLevel.title}',
+                    ),
+                    _StatItem(
+                      'Subscribers',
+                      FormattingUtils.formatNumber(viewModel.gameState.subscribers.toDouble()),
+                    ),
+                    _StatItem(
+                      'Videos',
+                      '${viewModel.gameState.totalVideosPosted}',
+                    ),
+                    _StatItem(
+                      'Credibility',
+                      '${viewModel.gameState.credibility.toInt()}%',
+                    ),
+                    _StatItem(
+                      'Ad Revenue',
+                      '\$${FormattingUtils.formatNumber(viewModel.gameState.youtubeRevenue)}',
+                    ),
+                    if (viewModel.gameState.totalCourseRevenue > 0)
+                      _StatItem(
+                        'Course Sales',
+                        '\$${FormattingUtils.formatNumber(viewModel.gameState.totalCourseRevenue)}',
+                      ),
+                  ],
+                ),
+
+              if (viewModel.gameState.hasYouTubeChannel) const SizedBox(height: 15),
+
               // Bot Stats
               if (viewModel.gameState.botEnabled)
                 _StatsCard(

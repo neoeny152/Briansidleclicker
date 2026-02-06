@@ -5,6 +5,7 @@ import '../models/trading_symbol.dart';
 import '../models/bot_upgrade.dart';
 import '../models/career.dart';
 import '../models/online_course.dart';
+import '../models/youtube_career.dart';
 import '../services/formatting_utils.dart';
 
 class ShopView extends StatefulWidget {
@@ -21,7 +22,7 @@ class _ShopViewState extends State<ShopView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
   }
 
   @override
@@ -51,8 +52,10 @@ class _ShopViewState extends State<ShopView>
             labelColor: const Color(0xFF4ADE80),
             unselectedLabelColor: const Color(0xFF888888),
             dividerColor: Colors.transparent,
+            labelStyle: const TextStyle(fontSize: 11),
             tabs: const [
               Tab(text: 'Career'),
+              Tab(text: 'YouTube'),
               Tab(text: 'Courses'),
               Tab(text: 'Bot'),
               Tab(text: 'Research'),
@@ -67,6 +70,7 @@ class _ShopViewState extends State<ShopView>
             controller: _tabController,
             children: [
               _CareerTab(),
+              _YouTubeTab(),
               _CoursesTab(),
               _BotUpgradesTab(),
               _ResearchTab(),
@@ -304,6 +308,505 @@ class _CareerTab extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _YouTubeTab extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<GameViewModel>(
+      builder: (context, viewModel, child) {
+        if (!viewModel.gameState.hasYouTubeChannel) {
+          // Show start channel option
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('📺', style: TextStyle(fontSize: 64)),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Start a YouTube Channel',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Share your trading journey!\nBad traders make exciting content...',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFF888888)),
+                  ),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: viewModel.canStartChannel
+                        ? () => viewModel.startYouTubeChannel()
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: viewModel.canStartChannel
+                          ? const Color(0xFFFF0000)
+                          : const Color(0xFF0F3460),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 15,
+                      ),
+                    ),
+                    child: const Text(
+                      'Start Channel (\$200)',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Show YouTube channel management
+        final level = viewModel.youtubeLevel;
+        final nextLevel = viewModel.nextYoutubeLevel;
+
+        return ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          children: [
+            // Channel Status Card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF16213E),
+                    const Color(0xFFFF0000).withOpacity(0.2),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: const Color(0xFFFF0000), width: 2),
+              ),
+              child: Column(
+                children: [
+                  Text(level.emoji, style: const TextStyle(fontSize: 48)),
+                  const SizedBox(height: 10),
+                  Text(
+                    level.title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _StatBox(
+                        label: 'Subscribers',
+                        value: FormattingUtils.formatNumber(viewModel.gameState.subscribers.toDouble()),
+                        color: const Color(0xFFFF0000),
+                      ),
+                      _StatBox(
+                        label: 'Videos',
+                        value: '${viewModel.gameState.totalVideosPosted}',
+                        color: const Color(0xFF4ADE80),
+                      ),
+                      _StatBox(
+                        label: 'Credibility',
+                        value: '${viewModel.gameState.credibility.toInt()}%',
+                        color: viewModel.gameState.credibility > 60
+                            ? const Color(0xFF4ADE80)
+                            : viewModel.gameState.credibility < 40
+                                ? const Color(0xFFE94560)
+                                : const Color(0xFFFFD700),
+                      ),
+                    ],
+                  ),
+                  if (nextLevel != null) ...[
+                    const SizedBox(height: 15),
+                    Text(
+                      'Next: ${nextLevel.title} at ${FormattingUtils.formatNumber(nextLevel.subscribersRequired.toDouble())} subs',
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
+                    ),
+                    const SizedBox(height: 5),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(5),
+                      child: LinearProgressIndicator(
+                        value: viewModel.gameState.subscribers / nextLevel.subscribersRequired,
+                        backgroundColor: const Color(0xFF0F3460),
+                        valueColor: const AlwaysStoppedAnimation(Color(0xFFFF0000)),
+                        minHeight: 8,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            // Post Video Button
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF16213E),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: viewModel.canPostVideo
+                      ? const Color(0xFFFF0000)
+                      : const Color(0xFF0F3460),
+                ),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: viewModel.canPostVideo ? () => viewModel.postVideo() : null,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.upload,
+                          size: 40,
+                          color: viewModel.canPostVideo
+                              ? const Color(0xFFFF0000)
+                              : const Color(0xFF888888),
+                        ),
+                        const SizedBox(width: 15),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Post Video',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: viewModel.canPostVideo
+                                      ? Colors.white
+                                      : const Color(0xFF888888),
+                                ),
+                              ),
+                              Text(
+                                viewModel.canPostVideo
+                                    ? 'Gain subscribers!'
+                                    : 'Cooldown: ${viewModel.videoPostCooldownSeconds}s',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF888888),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            // Revenue Info
+            if (level.canMonetize)
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF16213E),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Revenue Streams',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _RevenueRow(
+                      icon: Icons.play_circle,
+                      label: 'Ad Revenue',
+                      value: '\$${FormattingUtils.formatNumber(viewModel.pendingAdRevenue * 10)}/sec',
+                    ),
+                    if (viewModel.affiliateIncome > 0)
+                      _RevenueRow(
+                        icon: Icons.handshake,
+                        label: 'Affiliate Deals',
+                        value: '\$${FormattingUtils.formatNumber(viewModel.affiliateIncome)}/sec',
+                      ),
+                    const Divider(color: Color(0xFF0F3460)),
+                    _RevenueRow(
+                      icon: Icons.account_balance_wallet,
+                      label: 'Total YT Revenue',
+                      value: '\$${FormattingUtils.formatNumber(viewModel.gameState.youtubeRevenue)}',
+                      isBold: true,
+                    ),
+                  ],
+                ),
+              ),
+
+            if (level.canSellCourses) ...[
+              const SizedBox(height: 15),
+
+              // Create Course Section
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF16213E),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFFFD700)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Text('🎓', style: TextStyle(fontSize: 24)),
+                        SizedBox(width: 10),
+                        Text(
+                          'Create & Sell Course',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 15),
+
+                    // Scam Course Option
+                    _CourseCreationOption(
+                      title: 'Hype Course',
+                      subtitle: '"10x Your Portfolio!"',
+                      isScam: true,
+                      viewModel: viewModel,
+                      expectedSales: viewModel.getExpectedCourseSales(true),
+                      pricePerSale: viewModel.getCourseRevenuePerSale(true),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Legit Course Option
+                    _CourseCreationOption(
+                      title: 'Educational Course',
+                      subtitle: 'Actually useful content',
+                      isScam: false,
+                      viewModel: viewModel,
+                      expectedSales: viewModel.getExpectedCourseSales(false),
+                      pricePerSale: viewModel.getCourseRevenuePerSale(false),
+                    ),
+
+                    const SizedBox(height: 10),
+                    Text(
+                      viewModel.effectiveEdge >= 0
+                          ? 'Your positive edge makes legit courses credible!'
+                          : 'Warning: Selling hype courses will tank your credibility',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: viewModel.effectiveEdge >= 0
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFFE94560),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 15),
+
+            // Info box
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1A2E),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF0F3460)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Color(0xFF888888), size: 18),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'YouTube progress persists through Market Crashes!\nBad traders = exciting content = more subs!',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF888888),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _StatBox extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const _StatBox({required this.label, required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
+        ),
+      ],
+    );
+  }
+}
+
+class _RevenueRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool isBold;
+
+  const _RevenueRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.isBold = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: const Color(0xFF888888)),
+          const SizedBox(width: 8),
+          Text(label, style: const TextStyle(color: Color(0xFF888888))),
+          const Spacer(),
+          Text(
+            value,
+            style: TextStyle(
+              color: const Color(0xFF4ADE80),
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CourseCreationOption extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool isScam;
+  final GameViewModel viewModel;
+  final int expectedSales;
+  final double pricePerSale;
+
+  const _CourseCreationOption({
+    required this.title,
+    required this.subtitle,
+    required this.isScam,
+    required this.viewModel,
+    required this.expectedSales,
+    required this.pricePerSale,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final expectedRevenue = expectedSales * pricePerSale;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F3460),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isScam ? const Color(0xFFE94560) : const Color(0xFF4ADE80),
+        ),
+      ),
+      child: Row(
+        children: [
+          Text(isScam ? '🎰' : '📚', style: const TextStyle(fontSize: 28)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isScam ? const Color(0xFFE94560) : const Color(0xFF4ADE80),
+                  ),
+                ),
+                Text(
+                  '~${expectedSales} sales @ \$${pricePerSale.toInt()} = \$${FormattingUtils.formatNumber(expectedRevenue)}',
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
+                ),
+              ],
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final revenue = viewModel.createAndSellCourse(
+                isScam ? 'Hype Trading Secrets' : 'Trading Fundamentals',
+                isScam,
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Course sold! +\$${FormattingUtils.formatNumber(revenue)}',
+                  ),
+                  backgroundColor: const Color(0xFF4ADE80),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isScam ? const Color(0xFFE94560) : const Color(0xFF4ADE80),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+            child: const Text('Sell', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
     );
   }
 }

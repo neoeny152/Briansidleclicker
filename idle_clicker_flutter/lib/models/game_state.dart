@@ -30,6 +30,16 @@ class GameState {
   List<String> purchasedCourses; // List of course IDs
   double courseEdgeBonus; // Total edge from legit courses
 
+  // YouTube Career (persists through crash)
+  bool hasYouTubeChannel;
+  int subscribers;
+  int totalVideosPosted;
+  double youtubeRevenue; // Total ad revenue earned
+  double credibility; // 0-100, builds if good edge, decays if bad edge
+  List<Map<String, dynamic>> createdCourses; // Courses you've created to sell
+  double totalCourseRevenue; // Revenue from courses you created
+  DateTime? lastVideoPostTime; // Cooldown for posting videos
+
   // Bot automation
   bool botEnabled;
   double botTradesPerSecond;
@@ -70,6 +80,14 @@ class GameState {
     this.workSessionsAtCurrentLevel = 0,
     List<String>? purchasedCourses,
     this.courseEdgeBonus = 0,
+    this.hasYouTubeChannel = false,
+    this.subscribers = 0,
+    this.totalVideosPosted = 0,
+    this.youtubeRevenue = 0,
+    this.credibility = 50, // Start neutral
+    List<Map<String, dynamic>>? createdCourses,
+    this.totalCourseRevenue = 0,
+    this.lastVideoPostTime,
     this.botEnabled = false,
     this.botTradesPerSecond = 0,
     this.activeSymbol = 'stocks',
@@ -87,6 +105,7 @@ class GameState {
         unlockedSymbols = unlockedSymbols ?? {'stocks': true},
         symbolTradeCount = symbolTradeCount ?? {'stocks': 0},
         purchasedCourses = purchasedCourses ?? [],
+        createdCourses = createdCourses ?? [],
         lastSaveTime = lastSaveTime ?? DateTime.now();
 
   // Calculate effective edge for a symbol
@@ -113,6 +132,14 @@ class GameState {
         'workSessionsAtCurrentLevel': workSessionsAtCurrentLevel,
         'purchasedCourses': purchasedCourses,
         'courseEdgeBonus': courseEdgeBonus,
+        'hasYouTubeChannel': hasYouTubeChannel,
+        'subscribers': subscribers,
+        'totalVideosPosted': totalVideosPosted,
+        'youtubeRevenue': youtubeRevenue,
+        'credibility': credibility,
+        'createdCourses': createdCourses,
+        'totalCourseRevenue': totalCourseRevenue,
+        'lastVideoPostTime': lastVideoPostTime?.toIso8601String(),
         'botEnabled': botEnabled,
         'botTradesPerSecond': botTradesPerSecond,
         'activeSymbol': activeSymbol,
@@ -151,6 +178,17 @@ class GameState {
       purchasedCourses: (json['purchasedCourses'] as List<dynamic>?)
               ?.map((e) => e as String).toList() ?? [],
       courseEdgeBonus: (json['courseEdgeBonus'] as num?)?.toDouble() ?? 0,
+      hasYouTubeChannel: (json['hasYouTubeChannel'] as bool?) ?? false,
+      subscribers: (json['subscribers'] as int?) ?? 0,
+      totalVideosPosted: (json['totalVideosPosted'] as int?) ?? 0,
+      youtubeRevenue: (json['youtubeRevenue'] as num?)?.toDouble() ?? 0,
+      credibility: (json['credibility'] as num?)?.toDouble() ?? 50,
+      createdCourses: (json['createdCourses'] as List<dynamic>?)
+              ?.map((e) => e as Map<String, dynamic>).toList() ?? [],
+      totalCourseRevenue: (json['totalCourseRevenue'] as num?)?.toDouble() ?? 0,
+      lastVideoPostTime: json['lastVideoPostTime'] != null
+          ? DateTime.parse(json['lastVideoPostTime'] as String)
+          : null,
       botEnabled: (json['botEnabled'] as bool?) ?? false,
       botTradesPerSecond: (json['botTradesPerSecond'] as num?)?.toDouble() ?? 0,
       activeSymbol: (json['activeSymbol'] as String?) ?? 'stocks',

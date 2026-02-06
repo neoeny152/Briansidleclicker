@@ -76,6 +76,35 @@ class OnlineCourse {
       revealedDescription: 'It\'s motivational quotes and rented Lambo photos. Pure scam.',
     ),
 
+    // EXPENSIVE SCAMS - Look legit, still worthless
+    OnlineCourse(
+      id: 'hedge_fund_secrets',
+      name: 'Hedge Fund Insider Strategies',
+      emoji: '🏦',
+      description: 'Former Goldman Sachs VP reveals institutional trading secrets.',
+      price: 4500,
+      isScam: true,
+      revealedDescription: 'The "VP" was an intern for 2 months. Just generic trading advice.',
+    ),
+    OnlineCourse(
+      id: 'algo_masterclass',
+      name: 'Algorithmic Trading Masterclass',
+      emoji: '🔬',
+      description: 'Build your own HFT system! Taught by ex-Citadel quant.',
+      price: 7500,
+      isScam: true,
+      revealedDescription: 'Copy-pasted Wikipedia articles and a broken Python script. Fraud.',
+    ),
+    OnlineCourse(
+      id: 'inner_circle',
+      name: 'Elite Traders Inner Circle',
+      emoji: '💎',
+      description: 'Join the top 1% of traders. Private Discord + daily signals.',
+      price: 5000,
+      isScam: true,
+      revealedDescription: 'The Discord is just the instructor shilling his bags. Classic pump & dump.',
+    ),
+
     // LEGITIMATE COURSES - Expensive but actually help
     OnlineCourse(
       id: 'tech_analysis',
