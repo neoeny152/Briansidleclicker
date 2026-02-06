@@ -52,16 +52,19 @@ class _MainGameViewState extends State<MainGameView> {
         return Stack(
           children: [
             // Main content
-            Column(
-              children: [
-                const Spacer(flex: 1),
-                // Clicker button
-                ClickerButton(
-                  size: MediaQuery.of(context).size.width * 0.45,
-                  onTap: () => _handleTap(viewModel),
-                ),
-                const Spacer(flex: 2),
-              ],
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Spacer(flex: 1),
+                  // Clicker button
+                  ClickerButton(
+                    size: MediaQuery.of(context).size.width * 0.45,
+                    onTap: () => _handleTap(viewModel),
+                  ),
+                  const Spacer(flex: 2),
+                ],
+              ),
             ),
 
             // Floating numbers
