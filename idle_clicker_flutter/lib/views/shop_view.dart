@@ -22,7 +22,7 @@ class _ShopViewState extends State<ShopView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: 7, vsync: this);
   }
 
   @override
@@ -52,14 +52,17 @@ class _ShopViewState extends State<ShopView>
             labelColor: const Color(0xFF4ADE80),
             unselectedLabelColor: const Color(0xFF888888),
             dividerColor: Colors.transparent,
-            labelStyle: const TextStyle(fontSize: 11),
+            labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+            unselectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.normal),
+            labelPadding: EdgeInsets.zero,
             tabs: const [
               Tab(text: 'Career'),
-              Tab(text: 'YouTube'),
-              Tab(text: 'Courses'),
+              Tab(text: 'YT'),
+              Tab(text: 'Course'),
+              Tab(text: 'Passive'),
               Tab(text: 'Bot'),
-              Tab(text: 'Research'),
-              Tab(text: 'Markets'),
+              Tab(text: 'Rsrch'),
+              Tab(text: 'Mkts'),
             ],
           ),
         ),
@@ -72,6 +75,7 @@ class _ShopViewState extends State<ShopView>
               _CareerTab(),
               _YouTubeTab(),
               _CoursesTab(),
+              _PassiveIncomeTab(),
               _BotUpgradesTab(),
               _ResearchTab(),
               _MarketsTab(),
@@ -1003,6 +1007,73 @@ class _CourseCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _PassiveIncomeTab extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final upgrades = BotUpgrade.allUpgrades
+        .where((u) => u.category == UpgradeCategory.passive)
+        .toList();
+
+    return Consumer<GameViewModel>(
+      builder: (context, viewModel, child) {
+        return ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          children: [
+            // Passive income summary card
+            Container(
+              margin: const EdgeInsets.only(bottom: 15),
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF16213E),
+                    const Color(0xFF4ADE80).withOpacity(0.2),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF4ADE80), width: 2),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    '💤 Passive Income',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    '\$${FormattingUtils.formatNumber(viewModel.passiveIncome)}/sec',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF4ADE80),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  const Text(
+                    'Money while you sleep!',
+                    style: TextStyle(fontSize: 12, color: Color(0xFF888888)),
+                  ),
+                ],
+              ),
+            ),
+            // Upgrade list
+            ...upgrades.map((upgrade) => _UpgradeCard(
+                  upgrade: upgrade,
+                  viewModel: viewModel,
+                )),
+          ],
+        );
+      },
     );
   }
 }

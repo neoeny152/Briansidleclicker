@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum UpgradeCategory { bot, infrastructure, research }
+enum UpgradeCategory { bot, infrastructure, research, passive }
 
 class BotUpgrade {
   final String id;
@@ -17,6 +17,7 @@ class BotUpgrade {
   final double edgePerLevel; // +edge bonus
   final double speedPerLevel; // +trades/sec for bot
   final double tradeSizePerLevel; // +% trade size
+  final double passiveIncomePerLevel; // $/sec passive income
 
   const BotUpgrade({
     required this.id,
@@ -31,6 +32,7 @@ class BotUpgrade {
     this.edgePerLevel = 0,
     this.speedPerLevel = 0,
     this.tradeSizePerLevel = 0,
+    this.passiveIncomePerLevel = 0,
   });
 
   double getPrice(int currentLevel) {
@@ -161,6 +163,80 @@ class BotUpgrade {
       priceMultiplier: 4.0,
       maxLevel: 5,
       edgePerLevel: 0.03,
+    ),
+
+    // Passive Income Tier - Money without clicking!
+    BotUpgrade(
+      id: 'side_hustle',
+      name: 'Side Hustle',
+      emoji: '🛒',
+      description: '+\$0.05/sec per level (dropshipping)',
+      icon: Icons.shopping_bag,
+      category: UpgradeCategory.passive,
+      basePrice: 500, // Cheap early unlock
+      priceMultiplier: 2.0,
+      maxLevel: 10,
+      passiveIncomePerLevel: 0.05,
+    ),
+    BotUpgrade(
+      id: 'vending_machines',
+      name: 'Vending Machines',
+      emoji: '🥤',
+      description: '+\$0.15/sec per level',
+      icon: Icons.local_drink,
+      category: UpgradeCategory.passive,
+      basePrice: 2000,
+      priceMultiplier: 2.2,
+      maxLevel: 10,
+      passiveIncomePerLevel: 0.15,
+    ),
+    BotUpgrade(
+      id: 'rental_property',
+      name: 'Rental Property',
+      emoji: '🏠',
+      description: '+\$0.50/sec per level',
+      icon: Icons.home,
+      category: UpgradeCategory.passive,
+      basePrice: 15000,
+      priceMultiplier: 2.5,
+      maxLevel: 5,
+      passiveIncomePerLevel: 0.50,
+    ),
+    BotUpgrade(
+      id: 'dividend_portfolio',
+      name: 'Dividend Portfolio',
+      emoji: '💰',
+      description: '+\$1.00/sec per level',
+      icon: Icons.account_balance,
+      category: UpgradeCategory.passive,
+      basePrice: 50000,
+      priceMultiplier: 3.0,
+      maxLevel: 5,
+      passiveIncomePerLevel: 1.0,
+    ),
+    BotUpgrade(
+      id: 'laundromat',
+      name: 'Laundromat Chain',
+      emoji: '🧺',
+      description: '+\$2.50/sec per level',
+      icon: Icons.local_laundry_service,
+      category: UpgradeCategory.passive,
+      basePrice: 200000,
+      priceMultiplier: 3.5,
+      maxLevel: 5,
+      passiveIncomePerLevel: 2.5,
+    ),
+    BotUpgrade(
+      id: 'business_empire',
+      name: 'Business Empire',
+      emoji: '🏰',
+      description: '+\$10/sec per level (end game)',
+      icon: Icons.castle,
+      category: UpgradeCategory.passive,
+      basePrice: 1000000,
+      priceMultiplier: 4.0,
+      maxLevel: 10,
+      passiveIncomePerLevel: 10.0,
     ),
   ];
 

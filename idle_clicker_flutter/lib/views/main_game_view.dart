@@ -411,24 +411,40 @@ class _MainGameViewState extends State<MainGameView> with SingleTickerProviderSt
 
                   const SizedBox(height: 12),
 
-                  // Bot Status
-                  if (viewModel.gameState.botEnabled)
+                  // Passive Income Status
+                  if (viewModel.passiveIncome > 0 || viewModel.gameState.botEnabled)
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: const Color(0xFF16213E),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFF4ADE80)),
+                        border: Border.all(color: const Color(0xFF0F3460)),
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          const Icon(Icons.smart_toy, color: Color(0xFF4ADE80)),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Bot: ${viewModel.gameState.botTradesPerSecond.toStringAsFixed(1)} trades/sec',
-                            style: const TextStyle(color: Color(0xFF4ADE80)),
-                          ),
+                          if (viewModel.gameState.botEnabled)
+                            Row(
+                              children: [
+                                const Icon(Icons.smart_toy, color: Color(0xFF4ADE80), size: 16),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${viewModel.gameState.botTradesPerSecond.toStringAsFixed(1)}/s',
+                                  style: const TextStyle(color: Color(0xFF4ADE80), fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          if (viewModel.passiveIncome > 0)
+                            Row(
+                              children: [
+                                const Icon(Icons.bedtime, color: Color(0xFFFFD700), size: 16),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '+\$${FormattingUtils.formatNumber(viewModel.passiveIncome)}/s',
+                                  style: const TextStyle(color: Color(0xFFFFD700), fontSize: 12),
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ),

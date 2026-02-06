@@ -119,6 +119,14 @@ class GameViewModel extends ChangeNotifier {
       changed = true;
     }
 
+    // Passive income from upgrades (side hustle, rentals, etc.)
+    final passiveInc = passiveIncome * 0.1; // Per tick (10 ticks/sec)
+    if (passiveInc > 0) {
+      gameState.balance += passiveInc;
+      gameState.totalLifetimeEarnings += passiveInc;
+      changed = true;
+    }
+
     if (changed) {
       notifyListeners();
     }
@@ -162,6 +170,19 @@ class GameViewModel extends ChangeNotifier {
     }
 
     return size;
+  }
+
+  // Calculate passive income per second from all sources
+  double get passiveIncome {
+    double income = 0;
+
+    // Add passive income from upgrades
+    for (final upgrade in BotUpgrade.allUpgrades) {
+      final level = gameState.botUpgrades[upgrade.id] ?? 0;
+      income += upgrade.passiveIncomePerLevel * level;
+    }
+
+    return income;
   }
 
   // Execute a single trade
