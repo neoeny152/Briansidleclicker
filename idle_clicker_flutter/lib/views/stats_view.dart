@@ -14,99 +14,154 @@ class StatsView extends StatelessWidget {
           padding: const EdgeInsets.all(15),
           child: Column(
             children: [
-              // Stats Grid
+              // Trading Stats
               _StatsCard(
-                title: 'Current Run',
+                title: 'Trading Stats',
                 stats: [
                   _StatItem(
-                    'Total Coins',
-                    FormattingUtils.formatNumber(viewModel.gameState.coins),
+                    'Balance',
+                    '\$${FormattingUtils.formatNumber(viewModel.gameState.balance)}',
                   ),
                   _StatItem(
-                    'Coins Earned',
-                    FormattingUtils.formatNumber(viewModel.gameState.totalCoinsEarned),
+                    'Total Earned',
+                    '\$${FormattingUtils.formatNumber(viewModel.gameState.totalEarned)}',
                   ),
                   _StatItem(
-                    'Total Clicks',
-                    '${viewModel.gameState.totalClicks}',
+                    'Total Lost',
+                    '\$${FormattingUtils.formatNumber(viewModel.gameState.totalLost)}',
                   ),
                   _StatItem(
-                    'Coins per Click',
-                    FormattingUtils.formatNumber(viewModel.effectiveCoinsPerClick),
+                    'Total Trades',
+                    '${viewModel.gameState.totalTrades}',
                   ),
                   _StatItem(
-                    'Coins per Second',
-                    FormattingUtils.formatNumber(viewModel.gameState.coinsPerSecond),
+                    'Win Rate',
+                    '${(viewModel.winRate * 100).toStringAsFixed(1)}%',
+                  ),
+                  _StatItem(
+                    'Current Edge',
+                    '${(viewModel.effectiveEdge * 100).toStringAsFixed(1)}%',
                   ),
                 ],
               ),
 
               const SizedBox(height: 15),
 
-              // Multipliers
+              // Work Stats
               _StatsCard(
-                title: 'Multipliers',
+                title: 'Work Stats',
                 stats: [
                   _StatItem(
-                    'Click Multiplier',
-                    '${FormattingUtils.formatNumber(viewModel.gameState.clickMultiplier)}x',
+                    'Work Sessions',
+                    '${viewModel.gameState.totalWorkSessions}',
                   ),
                   _StatItem(
-                    'Global Multiplier',
-                    '${FormattingUtils.formatNumber(viewModel.gameState.globalMultiplier)}x',
+                    'Work Earnings',
+                    '\$${FormattingUtils.formatNumber(viewModel.gameState.totalWorkEarnings)}',
                   ),
                   _StatItem(
-                    'Prestige Multiplier',
-                    '${FormattingUtils.formatNumber(viewModel.gameState.prestigeMultiplier)}x',
+                    'Current Wage',
+                    '\$${FormattingUtils.formatNumber(5.0 + viewModel.gameState.totalWorkSessions * 0.5)}',
                   ),
                 ],
               ),
 
               const SizedBox(height: 15),
 
-              // Prestige Section
+              // Bot Stats
+              if (viewModel.gameState.botEnabled)
+                _StatsCard(
+                  title: 'Bot Stats',
+                  stats: [
+                    _StatItem(
+                      'Status',
+                      'Active',
+                    ),
+                    _StatItem(
+                      'Speed',
+                      '${viewModel.gameState.botTradesPerSecond.toStringAsFixed(1)} trades/sec',
+                    ),
+                    _StatItem(
+                      'Trade Size',
+                      '\$${FormattingUtils.formatNumber(viewModel.effectiveTradeSize)}',
+                    ),
+                  ],
+                ),
+
+              if (viewModel.gameState.botEnabled) const SizedBox(height: 15),
+
+              // Market Crash (Prestige) Section
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF16213E),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      const Color(0xFF16213E),
+                      const Color(0xFF1A1A2E).withOpacity(0.8),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF0F3460)),
+                  border: Border.all(
+                    color: viewModel.potentialCrashBonus > 0
+                        ? const Color(0xFFE94560)
+                        : const Color(0xFF0F3460),
+                  ),
                 ),
                 child: Column(
                   children: [
-                    const Text(
-                      'Prestige',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _PrestigeStat(
-                          'Points',
-                          '${viewModel.gameState.prestigePoints}',
+                        Text(
+                          '📉',
+                          style: TextStyle(fontSize: 24),
                         ),
-                        _PrestigeStat(
-                          'Prestiges',
-                          '${viewModel.gameState.totalPrestiges}',
-                        ),
-                        _PrestigeStat(
-                          'Potential',
-                          '+${viewModel.potentialPrestigePoints}',
+                        SizedBox(width: 8),
+                        Text(
+                          'Market Crash',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFE94560),
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 15),
-                    if (viewModel.potentialPrestigePoints > 0)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _PrestigeStat(
+                          'Crashes',
+                          '${viewModel.gameState.crashCount}',
+                        ),
+                        _PrestigeStat(
+                          'Experience',
+                          '${((viewModel.gameState.experienceMultiplier - 1) * 100).toStringAsFixed(0)}%',
+                        ),
+                        _PrestigeStat(
+                          'Potential',
+                          '+${viewModel.potentialCrashBonus}',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 15),
+                    Text(
+                      'Lifetime Earnings: \$${FormattingUtils.formatNumber(viewModel.gameState.totalLifetimeEarnings)}',
+                      style: const TextStyle(
+                        color: Color(0xFF888888),
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    if (viewModel.potentialCrashBonus > 0)
                       ElevatedButton(
-                        onPressed: () => _confirmPrestige(context, viewModel),
+                        onPressed: () => _confirmCrash(context, viewModel),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF9333EA),
+                          backgroundColor: const Color(0xFFE94560),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 30,
@@ -117,17 +172,29 @@ class StatsView extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          'Prestige (+${viewModel.potentialPrestigePoints} points)',
+                          'Trigger Crash (+${viewModel.potentialCrashBonus} experience)',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       )
                     else
-                      const Text(
-                        'Earn 1 billion coins to unlock prestige',
-                        style: TextStyle(
-                          color: Color(0xFF888888),
-                          fontSize: 14,
-                        ),
+                      const Column(
+                        children: [
+                          Text(
+                            'Earn \$10,000 lifetime to unlock',
+                            style: TextStyle(
+                              color: Color(0xFF888888),
+                              fontSize: 14,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Experience gives permanent edge bonus',
+                            style: TextStyle(
+                              color: Color(0xFF666666),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                   ],
                 ),
@@ -164,7 +231,7 @@ class StatsView extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text('Reset Game'),
+                      child: const Text('Reset All'),
                     ),
                   ),
                 ],
@@ -176,18 +243,38 @@ class StatsView extends StatelessWidget {
     );
   }
 
-  void _confirmPrestige(BuildContext context, GameViewModel viewModel) {
+  void _confirmCrash(BuildContext context, GameViewModel viewModel) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF16213E),
-        title: const Text(
-          'Prestige?',
-          style: TextStyle(color: Colors.white),
+        title: const Row(
+          children: [
+            Text('📉 ', style: TextStyle(fontSize: 24)),
+            Text(
+              'Market Crash?',
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
         ),
-        content: Text(
-          'You will gain ${viewModel.potentialPrestigePoints} prestige points but lose all coins, generators, and upgrades.',
-          style: const TextStyle(color: Color(0xFF888888)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'You will gain +${viewModel.potentialCrashBonus} experience points (+${viewModel.potentialCrashBonus * 5}% permanent edge bonus)',
+              style: const TextStyle(color: Color(0xFF4ADE80)),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'You will lose:',
+              style: TextStyle(color: Color(0xFFE94560)),
+            ),
+            const Text(
+              '• All your balance\n• All bot upgrades\n• All unlocked markets\n• All ML training progress',
+              style: TextStyle(color: Color(0xFF888888)),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -196,13 +283,13 @@ class StatsView extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              viewModel.performPrestige();
+              viewModel.marketCrash();
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF9333EA),
+              backgroundColor: const Color(0xFFE94560),
             ),
-            child: const Text('Prestige'),
+            child: const Text('Crash Market'),
           ),
         ],
       ),
@@ -219,7 +306,7 @@ class StatsView extends StatelessWidget {
           style: TextStyle(color: Colors.white),
         ),
         content: const Text(
-          'This will delete ALL progress including prestige points. Are you sure?',
+          'This will delete ALL progress including experience from crashes. Are you sure?',
           style: TextStyle(color: Color(0xFF888888)),
         ),
         actions: [
@@ -283,7 +370,7 @@ class _StatsCard extends StatelessWidget {
                     Text(
                       stat.value,
                       style: const TextStyle(
-                        color: Color(0xFFFFD700),
+                        color: Color(0xFF4ADE80),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -318,7 +405,7 @@ class _PrestigeStat extends StatelessWidget {
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF9333EA),
+            color: Color(0xFFE94560),
           ),
         ),
         Text(

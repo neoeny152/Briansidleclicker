@@ -55,17 +55,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   currentIndex: _currentIndex,
                   onTap: (index) => setState(() => _currentIndex = index),
                   backgroundColor: Colors.transparent,
-                  selectedItemColor: const Color(0xFFFFD700),
+                  selectedItemColor: const Color(0xFF4ADE80),
                   unselectedItemColor: const Color(0xFF888888),
                   elevation: 0,
                   items: const [
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.touch_app),
-                      label: 'Click',
+                      icon: Icon(Icons.show_chart),
+                      label: 'Trade',
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.storefront),
-                      label: 'Shop',
+                      icon: Icon(Icons.shopping_cart),
+                      label: 'Upgrades',
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.bar_chart),
@@ -97,23 +97,48 @@ class _Header extends StatelessWidget {
           ),
           child: Column(
             children: [
-              // Coin display
+              // Balance display
               Text(
-                '${FormattingUtils.formatNumber(viewModel.gameState.coins)} coins',
+                '\$${FormattingUtils.formatNumber(viewModel.gameState.balance)}',
                 style: const TextStyle(
-                  fontSize: 28,
+                  fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFFFFD700),
+                  color: Color(0xFF4ADE80),
                 ),
               ),
               const SizedBox(height: 5),
-              // Rate display
-              Text(
-                '${FormattingUtils.formatNumber(viewModel.effectiveCoinsPerClick)}/click  |  ${FormattingUtils.formatNumber(viewModel.gameState.coinsPerSecond)}/sec',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF888888),
-                ),
+              // P&L display
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '↑ \$${FormattingUtils.formatNumber(viewModel.gameState.totalEarned)}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF4ADE80),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    '↓ \$${FormattingUtils.formatNumber(viewModel.gameState.totalLost)}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFFE94560),
+                    ),
+                  ),
+                  if (viewModel.gameState.botEnabled) ...[
+                    const SizedBox(width: 16),
+                    const Icon(Icons.smart_toy, size: 14, color: Color(0xFF4ADE80)),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${viewModel.gameState.botTradesPerSecond.toStringAsFixed(1)}/s',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF4ADE80),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
