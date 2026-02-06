@@ -57,7 +57,7 @@ class _ShopViewState extends State<ShopView>
               labelColor: const Color(0xFF4ADE80),
               unselectedLabelColor: const Color(0xFF888888),
               dividerColor: Colors.transparent,
-              overlayColor: WidgetStateProperty.all(Colors.transparent),
+              overlayColor: MaterialStateProperty.all(Colors.transparent),
               splashFactory: NoSplash.splashFactory,
               labelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
               unselectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.normal),
