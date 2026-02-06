@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import '../models/game_state.dart';
 import '../models/trading_symbol.dart';
 import '../models/bot_upgrade.dart';
+import '../models/career.dart';
+import '../models/online_course.dart';
 import '../services/storage_service.dart';
 
 enum TradeResult { bigLoss, smallLoss, smallWin, goodWin, bigWin }
@@ -112,6 +114,9 @@ class GameViewModel extends ChangeNotifier {
       final level = gameState.botUpgrades[upgrade.id] ?? 0;
       edge += upgrade.edgePerLevel * level;
     }
+
+    // Add course edge bonus
+    edge += gameState.courseEdgeBonus;
 
     // Apply experience multiplier from crashes
     edge *= gameState.experienceMultiplier;
@@ -228,22 +233,60 @@ class GameViewModel extends ChangeNotifier {
     }
   }
 
+  // Career getters
+  CareerLevel get currentCareer => CareerLevel.getLevel(gameState.careerLevel);
+  CareerLevel? get nextCareer {
+    if (gameState.careerLevel >= CareerLevel.allLevels.length - 1) return null;
+    return CareerLevel.getLevel(gameState.careerLevel + 1);
+  }
+
+  double get currentWage {
+    final career = currentCareer;
+    // Tiny bonus per work session at current level (+$0.01 per session)
+    return career.baseWage + (gameState.workSessionsAtCurrentLevel * 0.01);
+  }
+
+  bool get canPromote {
+    final next = nextCareer;
+    if (next == null) return false;
+    return gameState.balance >= next.promotionCost &&
+        gameState.workSessionsAtCurrentLevel >= next.workSessionsRequired;
+  }
+
+  int get workSessionsForPromotion {
+    final next = nextCareer;
+    if (next == null) return 0;
+    return next.workSessionsRequired;
+  }
+
+  void promote() {
+    final next = nextCareer;
+    if (next == null) return;
+    if (!canPromote) return;
+
+    gameState.balance -= next.promotionCost;
+    gameState.careerLevel++;
+    gameState.workSessionsAtCurrentLevel = 0;
+    notifyListeners();
+  }
+
   // Work for guaranteed income
   void startWorking() {
     if (isWorking) return;
 
     isWorking = true;
-    workSecondsRemaining = 10; // 10 second work shift
+    workSecondsRemaining = 15; // 15 second work shift (longer grind)
     notifyListeners();
 
     _workTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       workSecondsRemaining--;
 
       if (workSecondsRemaining <= 0) {
-        // Work complete - pay out
-        final pay = 5.0 + (gameState.totalWorkSessions * 0.5); // Increases slightly over time
+        // Work complete - pay out based on career level
+        final pay = currentWage;
         gameState.balance += pay;
         gameState.totalWorkSessions++;
+        gameState.workSessionsAtCurrentLevel++;
         gameState.totalWorkEarnings += pay;
         gameState.totalLifetimeEarnings += pay;
 
@@ -313,6 +356,34 @@ class GameViewModel extends ChangeNotifier {
     if (gameState.unlockedSymbols[symbolId] != true) return;
     gameState.activeSymbol = symbolId;
     notifyListeners();
+  }
+
+  // Online Courses
+  bool hasPurchasedCourse(String courseId) {
+    return gameState.purchasedCourses.contains(courseId);
+  }
+
+  bool canAffordCourse(OnlineCourse course) {
+    if (hasPurchasedCourse(course.id)) return false;
+    return gameState.balance >= course.price;
+  }
+
+  // Returns true if course was legit, false if scam
+  bool purchaseCourse(OnlineCourse course) {
+    if (hasPurchasedCourse(course.id)) return false;
+    if (gameState.balance < course.price) return false;
+
+    gameState.balance -= course.price;
+    gameState.purchasedCourses.add(course.id);
+
+    if (!course.isScam) {
+      // Legit course - add edge bonus
+      gameState.courseEdgeBonus += course.edgeBonus;
+    }
+    // Scam courses do nothing but take your money
+
+    notifyListeners();
+    return !course.isScam;
   }
 
   // Buy the Dip
@@ -453,16 +524,24 @@ class GameViewModel extends ChangeNotifier {
     final bonus = potentialCrashBonus;
     if (bonus <= 0) return;
 
-    // Save prestige data
+    // Save prestige data (career and courses persist!)
     final newCrashCount = gameState.crashCount + 1;
     final newExpMultiplier = 1.0 + (gameState.crashCount + bonus) * 0.05;
     final lifetimeEarnings = gameState.totalLifetimeEarnings;
+    final savedCareerLevel = gameState.careerLevel;
+    final savedWorkSessions = gameState.workSessionsAtCurrentLevel;
+    final savedCourses = List<String>.from(gameState.purchasedCourses);
+    final savedCourseEdge = gameState.courseEdgeBonus;
 
-    // Reset to new game
+    // Reset to new game (but keep career and courses)
     gameState = GameState(
       crashCount: newCrashCount,
       experienceMultiplier: newExpMultiplier,
       totalLifetimeEarnings: lifetimeEarnings,
+      careerLevel: savedCareerLevel,
+      workSessionsAtCurrentLevel: savedWorkSessions,
+      purchasedCourses: savedCourses,
+      courseEdgeBonus: savedCourseEdge,
     );
 
     saveGame();

@@ -234,13 +234,21 @@ class _MainGameViewState extends State<MainGameView> with SingleTickerProviderSt
                       child: ElevatedButton.icon(
                         onPressed: () => viewModel.startWorking(),
                         icon: const Icon(Icons.work),
-                        label: Text(
-                          'Go to Work (+\$${FormattingUtils.formatNumber(5.0 + viewModel.gameState.totalWorkSessions * 0.5)})',
+                        label: Column(
+                          children: [
+                            Text(
+                              'Go to Work (+\$${FormattingUtils.formatNumber(viewModel.currentWage)})',
+                            ),
+                            Text(
+                              '${viewModel.currentCareer.emoji} ${viewModel.currentCareer.title}',
+                              style: const TextStyle(fontSize: 11, color: Color(0xFFAAAAAA)),
+                            ),
+                          ],
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF0F3460),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -258,9 +266,9 @@ class _MainGameViewState extends State<MainGameView> with SingleTickerProviderSt
                       ),
                       child: Column(
                         children: [
-                          const Text(
-                            'Working...',
-                            style: TextStyle(fontSize: 16),
+                          Text(
+                            'Working as ${viewModel.currentCareer.title}...',
+                            style: const TextStyle(fontSize: 14),
                           ),
                           const SizedBox(height: 8),
                           Text(

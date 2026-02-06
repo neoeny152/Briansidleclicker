@@ -60,8 +60,12 @@ class StatsView extends StatelessWidget {
                     '\$${FormattingUtils.formatNumber(viewModel.gameState.totalWorkEarnings)}',
                   ),
                   _StatItem(
+                    'Career',
+                    '${viewModel.currentCareer.emoji} ${viewModel.currentCareer.title}',
+                  ),
+                  _StatItem(
                     'Current Wage',
-                    '\$${FormattingUtils.formatNumber(5.0 + viewModel.gameState.totalWorkSessions * 0.5)}',
+                    '\$${FormattingUtils.formatNumber(viewModel.currentWage)}',
                   ),
                 ],
               ),
@@ -93,6 +97,24 @@ class StatsView extends StatelessWidget {
                 ),
 
               if (viewModel.gameState.totalDips > 0) const SizedBox(height: 15),
+
+              // Education Stats
+              if (viewModel.gameState.purchasedCourses.isNotEmpty)
+                _StatsCard(
+                  title: 'Education',
+                  stats: [
+                    _StatItem(
+                      'Courses Taken',
+                      '${viewModel.gameState.purchasedCourses.length}',
+                    ),
+                    _StatItem(
+                      'Course Edge Bonus',
+                      '+${(viewModel.gameState.courseEdgeBonus * 100).toStringAsFixed(1)}%',
+                    ),
+                  ],
+                ),
+
+              if (viewModel.gameState.purchasedCourses.isNotEmpty) const SizedBox(height: 15),
 
               // Bot Stats
               if (viewModel.gameState.botEnabled)

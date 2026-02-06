@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../viewmodels/game_view_model.dart';
 import '../models/trading_symbol.dart';
 import '../models/bot_upgrade.dart';
+import '../models/career.dart';
+import '../models/online_course.dart';
 import '../services/formatting_utils.dart';
 
 class ShopView extends StatefulWidget {
@@ -19,7 +21,7 @@ class _ShopViewState extends State<ShopView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -50,6 +52,8 @@ class _ShopViewState extends State<ShopView>
             unselectedLabelColor: const Color(0xFF888888),
             dividerColor: Colors.transparent,
             tabs: const [
+              Tab(text: 'Career'),
+              Tab(text: 'Courses'),
               Tab(text: 'Bot'),
               Tab(text: 'Research'),
               Tab(text: 'Markets'),
@@ -62,6 +66,8 @@ class _ShopViewState extends State<ShopView>
           child: TabBarView(
             controller: _tabController,
             children: [
+              _CareerTab(),
+              _CoursesTab(),
               _BotUpgradesTab(),
               _ResearchTab(),
               _MarketsTab(),
@@ -69,6 +75,431 @@ class _ShopViewState extends State<ShopView>
           ),
         ),
       ],
+    );
+  }
+}
+
+class _CareerTab extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<GameViewModel>(
+      builder: (context, viewModel, child) {
+        final currentCareer = viewModel.currentCareer;
+        final nextCareer = viewModel.nextCareer;
+
+        return ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          children: [
+            // Current position card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF16213E),
+                    const Color(0xFF0F3460).withOpacity(0.8),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: const Color(0xFF4ADE80), width: 2),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    currentCareer.emoji,
+                    style: const TextStyle(fontSize: 48),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    currentCareer.title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    'Wage: \$${FormattingUtils.formatNumber(viewModel.currentWage)} per shift',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF4ADE80),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  // Progress to next level
+                  if (nextCareer != null) ...[
+                    Text(
+                      'Sessions at current level: ${viewModel.gameState.workSessionsAtCurrentLevel}/${nextCareer.workSessionsRequired}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF888888),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(5),
+                      child: LinearProgressIndicator(
+                        value: viewModel.gameState.workSessionsAtCurrentLevel /
+                            nextCareer.workSessionsRequired,
+                        backgroundColor: const Color(0xFF0F3460),
+                        valueColor: const AlwaysStoppedAnimation(Color(0xFF4ADE80)),
+                        minHeight: 8,
+                      ),
+                    ),
+                  ] else
+                    const Text(
+                      'MAX CAREER LEVEL',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFFFFD700),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Promotion card
+            if (nextCareer != null)
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF16213E),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: viewModel.canPromote
+                        ? const Color(0xFFFFD700)
+                        : const Color(0xFF0F3460),
+                    width: viewModel.canPromote ? 2 : 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          nextCareer.emoji,
+                          style: const TextStyle(fontSize: 32),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Next Promotion:',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF888888),
+                                ),
+                              ),
+                              Text(
+                                nextCareer.title,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                'Wage: \$${FormattingUtils.formatNumber(nextCareer.baseWage)}/shift',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF4ADE80),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 15),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Training Cost: \$${FormattingUtils.formatNumber(nextCareer.promotionCost)}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: viewModel.gameState.balance >= nextCareer.promotionCost
+                                    ? const Color(0xFF4ADE80)
+                                    : const Color(0xFFE94560),
+                              ),
+                            ),
+                            Text(
+                              'Requires: ${nextCareer.workSessionsRequired} sessions',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: viewModel.gameState.workSessionsAtCurrentLevel >=
+                                        nextCareer.workSessionsRequired
+                                    ? const Color(0xFF4ADE80)
+                                    : const Color(0xFF888888),
+                              ),
+                            ),
+                          ],
+                        ),
+                        ElevatedButton(
+                          onPressed: viewModel.canPromote
+                              ? () => viewModel.promote()
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: viewModel.canPromote
+                                ? const Color(0xFFFFD700)
+                                : const Color(0xFF0F3460),
+                            foregroundColor: viewModel.canPromote
+                                ? Colors.black
+                                : const Color(0xFF888888),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                          ),
+                          child: const Text(
+                            'PROMOTE',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+            const SizedBox(height: 20),
+
+            // Career persists info
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1A2E),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF0F3460)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Color(0xFF888888), size: 18),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Career progress persists through Market Crashes!',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF888888),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _CoursesTab extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<GameViewModel>(
+      builder: (context, viewModel, child) {
+        // Shuffle courses but keep order deterministic per session
+        final courses = List<OnlineCourse>.from(OnlineCourse.allCourses);
+
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          itemCount: courses.length + 1, // +1 for header
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              // Header with course edge bonus
+              return Container(
+                margin: const EdgeInsets.only(bottom: 15),
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF16213E),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Course Edge Bonus:',
+                      style: TextStyle(color: Color(0xFF888888)),
+                    ),
+                    Text(
+                      '+${(viewModel.gameState.courseEdgeBonus * 100).toStringAsFixed(1)}%',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4ADE80),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final course = courses[index - 1];
+            return _CourseCard(course: course, viewModel: viewModel);
+          },
+        );
+      },
+    );
+  }
+}
+
+class _CourseCard extends StatelessWidget {
+  final OnlineCourse course;
+  final GameViewModel viewModel;
+
+  const _CourseCard({required this.course, required this.viewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    final isPurchased = viewModel.hasPurchasedCourse(course.id);
+    final canAfford = viewModel.gameState.balance >= course.price && !isPurchased;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF16213E),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isPurchased
+              ? (course.isScam ? const Color(0xFFE94560) : const Color(0xFF4ADE80))
+              : canAfford
+                  ? const Color(0xFFFFD700)
+                  : const Color(0xFF0F3460),
+          width: isPurchased ? 2 : 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  course.emoji,
+                  style: const TextStyle(fontSize: 28),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        course.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        isPurchased ? course.revealedDescription : course.description,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isPurchased
+                              ? (course.isScam
+                                  ? const Color(0xFFE94560)
+                                  : const Color(0xFF4ADE80))
+                              : const Color(0xFF888888),
+                          fontStyle: isPurchased ? FontStyle.italic : FontStyle.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (isPurchased)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: course.isScam
+                          ? const Color(0xFFE94560).withOpacity(0.2)
+                          : const Color(0xFF4ADE80).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      course.isScam ? 'SCAM!' : '+${(course.edgeBonus * 100).toStringAsFixed(1)}% Edge',
+                      style: TextStyle(
+                        color: course.isScam
+                            ? const Color(0xFFE94560)
+                            : const Color(0xFF4ADE80),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  )
+                else
+                  Text(
+                    '\$${FormattingUtils.formatNumber(course.price)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: canAfford
+                          ? const Color(0xFFFFD700)
+                          : const Color(0xFFE94560),
+                    ),
+                  ),
+                if (!isPurchased)
+                  ElevatedButton(
+                    onPressed: canAfford
+                        ? () {
+                            final wasLegit = viewModel.purchaseCourse(course);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  wasLegit
+                                      ? 'Great course! +${(course.edgeBonus * 100).toStringAsFixed(1)}% edge'
+                                      : 'This was a SCAM! Money wasted...',
+                                ),
+                                backgroundColor: wasLegit
+                                    ? const Color(0xFF4ADE80)
+                                    : const Color(0xFFE94560),
+                              ),
+                            );
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: canAfford
+                          ? const Color(0xFFFFD700)
+                          : const Color(0xFF0F3460),
+                      foregroundColor:
+                          canAfford ? Colors.black : const Color(0xFF888888),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                    ),
+                    child: const Text(
+                      'Enroll',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
