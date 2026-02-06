@@ -43,6 +43,32 @@ class _MainGameViewState extends State<MainGameView> with SingleTickerProviderSt
     });
   }
 
+  void _handleWorkClick(GameViewModel viewModel) {
+    if (!viewModel.isWorking) return;
+
+    viewModel.clickWork();
+    final earnings = viewModel.currentClickWage;
+
+    final random = Random();
+    final offsetX = random.nextDouble() * 80 - 40;
+    final offsetY = random.nextDouble() * 30 - 15;
+
+    setState(() {
+      if (_floatingNumbers.length > 10) {
+        _floatingNumbers.removeAt(0);
+      }
+      _floatingNumbers.add(_FloatingNumberData(
+        id: _nextId++,
+        text: '+\$${FormattingUtils.formatNumber(earnings)}',
+        isPositive: true,
+        position: Offset(
+          MediaQuery.of(context).size.width / 2 + offsetX,
+          MediaQuery.of(context).size.height * 0.35 + offsetY,
+        ),
+      ));
+    });
+  }
+
   void _handleDip(GameViewModel viewModel) {
     final outcome = viewModel.buyTheDip();
 
@@ -178,56 +204,175 @@ class _MainGameViewState extends State<MainGameView> with SingleTickerProviderSt
 
                   const Spacer(),
 
-                  // Trade Button
-                  GestureDetector(
-                    onTap: () => _handleTrade(viewModel),
-                    child: Container(
-                      width: 160,
-                      height: 160,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Color(0xFF4ADE80), Color(0xFF22C55E)],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF4ADE80).withOpacity(0.4),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
+                  // Trade Button (or Work Button when working)
+                  if (!viewModel.isWorking)
+                    // Normal Trade Button
+                    GestureDetector(
+                      onTap: () => _handleTrade(viewModel),
+                      child: Container(
+                        width: 160,
+                        height: 160,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF4ADE80), Color(0xFF22C55E)],
                           ),
-                        ],
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF4ADE80).withOpacity(0.4),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.show_chart, size: 48, color: Colors.white),
+                            SizedBox(height: 4),
+                            Text(
+                              'TRADE',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.show_chart, size: 48, color: Colors.white),
-                          SizedBox(height: 4),
-                          Text(
-                            'TRADE',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                    )
+                  else
+                    // Working - show Work button and optionally Trade button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Work Click Button
+                        GestureDetector(
+                          onTap: () => _handleWorkClick(viewModel),
+                          child: Container(
+                            width: viewModel.canTradeNow ? 120 : 160,
+                            height: viewModel.canTradeNow ? 120 : 160,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFFFD700).withOpacity(0.4),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.work, size: 36, color: Colors.white),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'WORK',
+                                  style: TextStyle(
+                                    fontSize: viewModel.canTradeNow ? 14 : 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                Text(
+                                  '${viewModel.workSecondsRemaining}s',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Trade button if allowed to trade at work
+                        if (viewModel.canTradeNow) ...[
+                          const SizedBox(width: 20),
+                          GestureDetector(
+                            onTap: () => _handleTrade(viewModel),
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [Color(0xFF4ADE80), Color(0xFF22C55E)],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF4ADE80).withOpacity(0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.show_chart, size: 28, color: Colors.white),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'TRADE',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
-                      ),
+                      ],
                     ),
-                  ),
 
                   const SizedBox(height: 20),
 
-                  // Trade size info
-                  Text(
-                    'Trade Size: \$${FormattingUtils.formatNumber(viewModel.effectiveTradeSize)}',
-                    style: const TextStyle(color: Color(0xFF888888)),
-                  ),
+                  // Trade size info or work earnings
+                  if (!viewModel.isWorking)
+                    Text(
+                      'Trade Size: \$${FormattingUtils.formatNumber(viewModel.effectiveTradeSize)}',
+                      style: const TextStyle(color: Color(0xFF888888)),
+                    )
+                  else
+                    Column(
+                      children: [
+                        Text(
+                          '${viewModel.currentCareer.emoji} ${viewModel.currentCareer.title}',
+                          style: const TextStyle(fontSize: 12, color: Color(0xFFAAAAAA)),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Click earnings: \$${FormattingUtils.formatNumber(viewModel.workClickEarnings)}',
+                          style: const TextStyle(color: Color(0xFFFFD700)),
+                        ),
+                        Text(
+                          '+\$${FormattingUtils.formatNumber(viewModel.currentWage)} completion bonus',
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
+                        ),
+                        if (!viewModel.canTradeNow)
+                          const Text(
+                            'Trading locked at this career level',
+                            style: TextStyle(fontSize: 10, color: Color(0xFFE94560)),
+                          ),
+                      ],
+                    ),
 
                   const Spacer(),
 
-                  // Work Button
+                  // Go to Work Button (only when not working)
                   if (!viewModel.isWorking)
                     SizedBox(
                       width: double.infinity,
@@ -253,33 +398,6 @@ class _MainGameViewState extends State<MainGameView> with SingleTickerProviderSt
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                      ),
-                    )
-                  else
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF16213E),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF0F3460)),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Working as ${viewModel.currentCareer.title}...',
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${viewModel.workSecondsRemaining}s remaining',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFFFD700),
-                            ),
-                          ),
-                        ],
                       ),
                     ),
 

@@ -53,6 +53,7 @@ class GameViewModel extends ChangeNotifier {
   // Work state
   bool isWorking = false;
   int workSecondsRemaining = 0;
+  double workClickEarnings = 0; // Earnings from clicking during current work session
 
   GameViewModel() {
     _initGame();
@@ -272,6 +273,30 @@ class GameViewModel extends ChangeNotifier {
     return career.baseWage + (gameState.workSessionsAtCurrentLevel * 0.01);
   }
 
+  double get currentClickWage {
+    final career = currentCareer;
+    // Tiny bonus per work session at current level (+$0.005 per session)
+    return career.clickWage + (gameState.workSessionsAtCurrentLevel * 0.005);
+  }
+
+  // Can only trade if not working, or if career allows trading at work
+  bool get canTradeNow {
+    if (!isWorking) return true;
+    return currentCareer.canTradeAtWork;
+  }
+
+  // Click during work to earn clickWage
+  void clickWork() {
+    if (!isWorking) return;
+
+    final earnings = currentClickWage;
+    gameState.balance += earnings;
+    gameState.totalWorkEarnings += earnings;
+    gameState.totalLifetimeEarnings += earnings;
+    workClickEarnings += earnings;
+    notifyListeners();
+  }
+
   bool get canPromote {
     final next = nextCareer;
     if (next == null) return false;
@@ -302,6 +327,7 @@ class GameViewModel extends ChangeNotifier {
 
     isWorking = true;
     workSecondsRemaining = 15; // 15 second work shift (longer grind)
+    workClickEarnings = 0; // Reset click earnings for this session
     notifyListeners();
 
     _workTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
