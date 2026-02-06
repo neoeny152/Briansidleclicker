@@ -462,10 +462,119 @@ class _MainGameViewState extends State<MainGameView> with SingleTickerProviderSt
                   position: data.position,
                   onComplete: () => _removeFloatingNumber(data.id),
                 )),
+
+            // Market Tip floating button (like Golden Cookie)
+            if (viewModel.hasActiveMarketTip)
+              Positioned(
+                top: MediaQuery.of(context).size.height * 0.15,
+                right: 20,
+                child: GestureDetector(
+                  onTap: () {
+                    final result = viewModel.claimMarketTip();
+                    if (result.isNotEmpty) {
+                      _showMarketTipResult(result);
+                    }
+                  },
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.9, end: 1.1),
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                    builder: (context, scale, child) {
+                      return Transform.scale(
+                        scale: scale,
+                        child: child,
+                      );
+                    },
+                    onEnd: () {},
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: viewModel.marketTipType == 'lucky'
+                              ? [const Color(0xFF4ADE80), const Color(0xFFFFD700)]
+                              : viewModel.marketTipType == 'frenzy'
+                                  ? [const Color(0xFFFF6B6B), const Color(0xFFFF8C00)]
+                                  : [const Color(0xFFFFD700), const Color(0xFFFF8C00)],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFFD700).withOpacity(0.6),
+                            blurRadius: 15,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            viewModel.marketTipLabel,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            '${viewModel.marketTipSecondsRemaining}s',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+            // Frenzy indicator
+            if (viewModel.isFrenzyActive)
+              Positioned(
+                top: 10,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF6B6B).withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '🔥 2x FRENZY! ${viewModel.frenzySecondsRemaining}s',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         );
       },
     );
+  }
+
+  void _showMarketTipResult(String result) {
+    final random = Random();
+    final offsetX = random.nextDouble() * 60 - 30;
+
+    setState(() {
+      _floatingNumbers.add(_FloatingNumberData(
+        id: _nextId++,
+        text: result,
+        isPositive: true,
+        position: Offset(
+          MediaQuery.of(context).size.width / 2 + offsetX,
+          MediaQuery.of(context).size.height * 0.2,
+        ),
+      ));
+    });
   }
 }
 

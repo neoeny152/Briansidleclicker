@@ -38,6 +38,7 @@ class YouTubeLevel {
       emoji: '🎬',
       subscribersRequired: 100,
       unlockCost: 0,
+      canMonetize: true, // Early monetization hook! (tiny revenue)
     ),
     YouTubeLevel(
       id: 'growing',
@@ -45,12 +46,13 @@ class YouTubeLevel {
       emoji: '📈',
       subscribersRequired: 1000,
       unlockCost: 0,
+      canMonetize: true,
     ),
     YouTubeLevel(
-      id: 'monetized',
-      title: 'Monetized',
+      id: 'partner',
+      title: 'YouTube Partner',
       emoji: '💵',
-      subscribersRequired: 10000,
+      subscribersRequired: 5000,
       unlockCost: 0,
       canMonetize: true,
     ),
@@ -58,10 +60,10 @@ class YouTubeLevel {
       id: 'fulltime',
       title: 'Full-Time Creator',
       emoji: '🎥',
-      subscribersRequired: 100000,
+      subscribersRequired: 25000,
       unlockCost: 0,
       canMonetize: true,
-      canSellCourses: true,
+      canSellCourses: true, // Earlier course creation
     ),
     YouTubeLevel(
       id: 'influencer',

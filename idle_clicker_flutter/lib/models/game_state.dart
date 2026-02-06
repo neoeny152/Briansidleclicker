@@ -59,6 +59,9 @@ class GameState {
   double totalDipWinnings;
   double totalDipLosses;
 
+  // Market Tips (Golden Cookie equivalent)
+  DateTime? frenzyEndTime; // When 2x frenzy ends
+
   // Meta
   DateTime lastSaveTime;
 
@@ -99,6 +102,7 @@ class GameState {
     this.totalDips = 0,
     this.totalDipWinnings = 0,
     this.totalDipLosses = 0,
+    this.frenzyEndTime,
     DateTime? lastSaveTime,
   })  : botUpgrades = botUpgrades ?? {},
         symbolEdges = symbolEdges ?? {'stocks': 0},
@@ -151,6 +155,7 @@ class GameState {
         'totalDips': totalDips,
         'totalDipWinnings': totalDipWinnings,
         'totalDipLosses': totalDipLosses,
+        'frenzyEndTime': frenzyEndTime?.toIso8601String(),
         'lastSaveTime': lastSaveTime.toIso8601String(),
       };
 
@@ -202,6 +207,9 @@ class GameState {
       totalDips: (json['totalDips'] as int?) ?? 0,
       totalDipWinnings: (json['totalDipWinnings'] as num?)?.toDouble() ?? 0,
       totalDipLosses: (json['totalDipLosses'] as num?)?.toDouble() ?? 0,
+      frenzyEndTime: json['frenzyEndTime'] != null
+          ? DateTime.parse(json['frenzyEndTime'] as String)
+          : null,
       lastSaveTime: json['lastSaveTime'] != null
           ? DateTime.parse(json['lastSaveTime'] as String)
           : DateTime.now(),

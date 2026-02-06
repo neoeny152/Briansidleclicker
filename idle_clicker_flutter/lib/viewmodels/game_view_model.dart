@@ -43,6 +43,7 @@ class GameViewModel extends ChangeNotifier {
   Timer? _gameTimer;
   Timer? _saveTimer;
   Timer? _workTimer;
+  Timer? _marketTipTimer;
 
   // Last trade result for UI feedback
   TradeOutcome? lastTradeOutcome;
@@ -55,6 +56,12 @@ class GameViewModel extends ChangeNotifier {
   int workSecondsRemaining = 0;
   double workClickEarnings = 0; // Earnings from clicking during current work session
 
+  // Market Tip state (like Golden Cookie)
+  bool hasActiveMarketTip = false;
+  String marketTipType = ''; // 'cash', 'edge', 'frenzy'
+  double marketTipValue = 0;
+  int marketTipSecondsRemaining = 0;
+
   GameViewModel() {
     _initGame();
   }
@@ -66,6 +73,7 @@ class GameViewModel extends ChangeNotifier {
     }
     _startGameLoop();
     _startAutoSave();
+    _scheduleNextMarketTip();
     notifyListeners();
   }
 
@@ -79,6 +87,9 @@ class GameViewModel extends ChangeNotifier {
 
   void _tick() {
     bool changed = false;
+
+    // Frenzy multiplier (from Market Tips)
+    final frenzyMultiplier = isFrenzyActive ? 2.0 : 1.0;
 
     // Bot trading
     if (gameState.botEnabled && gameState.botTradesPerSecond > 0) {
@@ -102,7 +113,7 @@ class GameViewModel extends ChangeNotifier {
 
     // YouTube ad revenue (passive income, collected every tick)
     if (youtubeLevel.canMonetize) {
-      final adRev = pendingAdRevenue;
+      final adRev = pendingAdRevenue * frenzyMultiplier;
       if (adRev > 0) {
         gameState.balance += adRev;
         gameState.youtubeRevenue += adRev;
@@ -112,7 +123,7 @@ class GameViewModel extends ChangeNotifier {
     }
 
     // Affiliate income (credibility bonus)
-    final affIncome = affiliateIncome * 0.1; // Per tick (10 ticks/sec)
+    final affIncome = affiliateIncome * 0.1 * frenzyMultiplier; // Per tick (10 ticks/sec)
     if (affIncome > 0) {
       gameState.balance += affIncome;
       gameState.totalLifetimeEarnings += affIncome;
@@ -120,7 +131,7 @@ class GameViewModel extends ChangeNotifier {
     }
 
     // Passive income from upgrades (side hustle, rentals, etc.)
-    final passiveInc = passiveIncome * 0.1; // Per tick (10 ticks/sec)
+    final passiveInc = passiveIncome * 0.1 * frenzyMultiplier; // Per tick (10 ticks/sec)
     if (passiveInc > 0) {
       gameState.balance += passiveInc;
       gameState.totalLifetimeEarnings += passiveInc;
@@ -845,11 +856,118 @@ class GameViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Market Tips (like Golden Cookies) - random bonus events
+  void _scheduleNextMarketTip() {
+    _marketTipTimer?.cancel();
+    // Spawn every 20-60 seconds (faster than Cookie Clicker to hook early)
+    final nextTipSeconds = 20 + _random.nextInt(40);
+    _marketTipTimer = Timer(Duration(seconds: nextTipSeconds), _spawnMarketTip);
+  }
+
+  void _spawnMarketTip() {
+    if (hasActiveMarketTip) {
+      _scheduleNextMarketTip();
+      return;
+    }
+
+    // Pick a random tip type
+    final tipRoll = _random.nextDouble();
+    if (tipRoll < 0.50) {
+      // Cash bonus (50% chance)
+      marketTipType = 'cash';
+      // Give 10-50% of current balance, minimum $5
+      final percent = 0.10 + _random.nextDouble() * 0.40;
+      marketTipValue = (gameState.balance * percent).clamp(5.0, double.infinity);
+    } else if (tipRoll < 0.80) {
+      // Lucky tip (30% chance) - bigger cash bonus
+      marketTipType = 'lucky';
+      // Give 50-150% of current balance, minimum $20
+      final percent = 0.50 + _random.nextDouble() * 1.0;
+      marketTipValue = (gameState.balance * percent).clamp(20.0, double.infinity);
+    } else {
+      // Frenzy (20% chance) - 2x income for 30 seconds
+      marketTipType = 'frenzy';
+      marketTipValue = 30; // Duration in seconds
+    }
+
+    hasActiveMarketTip = true;
+    marketTipSecondsRemaining = 10; // 10 seconds to claim
+
+    // Start countdown timer
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!hasActiveMarketTip) {
+        timer.cancel();
+        return;
+      }
+      marketTipSecondsRemaining--;
+      if (marketTipSecondsRemaining <= 0) {
+        // Tip expired
+        hasActiveMarketTip = false;
+        timer.cancel();
+        _scheduleNextMarketTip();
+      }
+      notifyListeners();
+    });
+
+    notifyListeners();
+  }
+
+  // Returns description of what was claimed
+  String claimMarketTip() {
+    if (!hasActiveMarketTip) return '';
+
+    String result;
+    if (marketTipType == 'cash') {
+      gameState.balance += marketTipValue;
+      gameState.totalLifetimeEarnings += marketTipValue;
+      result = '+\$${marketTipValue.toStringAsFixed(0)} Cash Bonus!';
+    } else if (marketTipType == 'lucky') {
+      gameState.balance += marketTipValue;
+      gameState.totalLifetimeEarnings += marketTipValue;
+      result = '+\$${marketTipValue.toStringAsFixed(0)} Lucky Bonus!';
+    } else {
+      // Frenzy - handled in tick
+      gameState.frenzyEndTime = DateTime.now().add(Duration(seconds: marketTipValue.toInt()));
+      result = '2x Income Frenzy for ${marketTipValue.toInt()}s!';
+    }
+
+    hasActiveMarketTip = false;
+    _scheduleNextMarketTip();
+    notifyListeners();
+    return result;
+  }
+
+  String get marketTipLabel {
+    switch (marketTipType) {
+      case 'cash':
+        return '💰 Market Tip!';
+      case 'lucky':
+        return '🍀 Lucky Break!';
+      case 'frenzy':
+        return '🔥 Frenzy!';
+      default:
+        return '💡 Tip!';
+    }
+  }
+
+  // Check if frenzy is active
+  bool get isFrenzyActive {
+    if (gameState.frenzyEndTime == null) return false;
+    return DateTime.now().isBefore(gameState.frenzyEndTime!);
+  }
+
+  int get frenzySecondsRemaining {
+    if (gameState.frenzyEndTime == null) return 0;
+    final remaining = gameState.frenzyEndTime!.difference(DateTime.now()).inSeconds;
+    return remaining > 0 ? remaining : 0;
+  }
+
   @override
   void dispose() {
     _gameTimer?.cancel();
     _saveTimer?.cancel();
     _workTimer?.cancel();
+    _marketTipTimer?.cancel();
     saveGame();
     super.dispose();
   }
