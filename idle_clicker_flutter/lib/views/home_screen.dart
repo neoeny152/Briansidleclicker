@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/game_view_model.dart';
 import '../services/formatting_utils.dart';
 import 'main_game_view.dart';
+import 'career_view.dart';
 import 'shop_view.dart';
 import 'stats_view.dart';
 
@@ -18,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = const [
     MainGameView(),
+    CareerView(),
     ShopView(),
     StatsView(),
   ];
@@ -57,11 +59,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   backgroundColor: Colors.transparent,
                   selectedItemColor: const Color(0xFF4ADE80),
                   unselectedItemColor: const Color(0xFF888888),
+                  type: BottomNavigationBarType.fixed,
                   elevation: 0,
                   items: const [
                     BottomNavigationBarItem(
                       icon: Icon(Icons.show_chart),
                       label: 'Trade',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.work),
+                      label: 'Career',
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.shopping_cart),
