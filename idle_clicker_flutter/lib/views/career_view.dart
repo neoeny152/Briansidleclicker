@@ -90,6 +90,7 @@ class _JobTab extends StatelessWidget {
         final nextCareer = viewModel.nextCareer;
 
         return ListView(
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 15),
           children: [
             // Current position card
@@ -358,6 +359,7 @@ class _YouTubeTab extends StatelessWidget {
 
         // Has channel - show stats
         return ListView(
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 15),
           children: [
             // Channel stats card

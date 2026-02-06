@@ -70,17 +70,23 @@ class _ShopViewState extends State<ShopView>
           ),
         ),
 
-        // Tab content
+        // Tab content - wrapped to remove overscroll glow on Safari
         Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _CoursesTab(),
-              _PassiveIncomeTab(),
-              _BotUpgradesTab(),
-              _ResearchTab(),
-              _MarketsTab(),
-            ],
+          child: ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              overscroll: false,
+              physics: const ClampingScrollPhysics(),
+            ),
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _CoursesTab(),
+                _PassiveIncomeTab(),
+                _BotUpgradesTab(),
+                _ResearchTab(),
+                _MarketsTab(),
+              ],
+            ),
           ),
         ),
       ],
@@ -99,6 +105,7 @@ class _CoursesTab extends StatelessWidget {
         final courses = List<OnlineCourse>.from(OnlineCourse.allCourses);
 
         return ListView.builder(
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 15),
           itemCount: courses.length + 1, // +1 for header
           itemBuilder: (context, index) {
@@ -296,6 +303,7 @@ class _PassiveIncomeTab extends StatelessWidget {
     return Consumer<GameViewModel>(
       builder: (context, viewModel, child) {
         return ListView(
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 15),
           children: [
             // Passive income summary card
@@ -365,6 +373,7 @@ class _BotUpgradesTab extends StatelessWidget {
     return Consumer<GameViewModel>(
       builder: (context, viewModel, child) {
         return ListView.builder(
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 15),
           itemCount: upgrades.length,
           itemBuilder: (context, index) {
@@ -387,6 +396,7 @@ class _ResearchTab extends StatelessWidget {
     return Consumer<GameViewModel>(
       builder: (context, viewModel, child) {
         return ListView.builder(
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 15),
           itemCount: upgrades.length,
           itemBuilder: (context, index) {
@@ -405,6 +415,7 @@ class _MarketsTab extends StatelessWidget {
     return Consumer<GameViewModel>(
       builder: (context, viewModel, child) {
         return ListView.builder(
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 15),
           itemCount: TradingSymbol.allSymbols.length,
           itemBuilder: (context, index) {

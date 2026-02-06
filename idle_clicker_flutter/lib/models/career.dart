@@ -24,8 +24,8 @@ class CareerLevel {
       id: 'unemployed',
       title: 'Unemployed',
       emoji: '😔',
-      baseWage: 3.0, // Gig work, odd jobs
-      clickWage: 0.15,
+      baseWage: 5.0, // Gig work, odd jobs
+      clickWage: 0.50,
       promotionCost: 0,
       workSessionsRequired: 0,
       canTradeAtWork: true, // You're your own boss (but poor)
@@ -34,80 +34,80 @@ class CareerLevel {
       id: 'intern',
       title: 'Intern',
       emoji: '📋',
-      baseWage: 5.0,
-      clickWage: 0.25,
-      promotionCost: 25, // Faster early game!
-      workSessionsRequired: 3, // Quick first promotion
+      baseWage: 10.0,
+      clickWage: 1.0,
+      promotionCost: 25,
+      workSessionsRequired: 2, // Very quick first promotion
       canTradeAtWork: false, // They're watching you
     ),
     CareerLevel(
       id: 'entry',
       title: 'Entry Level',
       emoji: '💼',
-      baseWage: 8.0,
-      clickWage: 0.40,
-      promotionCost: 100, // Was 200
-      workSessionsRequired: 8, // Was 15
+      baseWage: 20.0,
+      clickWage: 2.0,
+      promotionCost: 100,
+      workSessionsRequired: 4,
       canTradeAtWork: false, // Still being monitored
     ),
     CareerLevel(
       id: 'associate',
       title: 'Associate',
       emoji: '👔',
-      baseWage: 15.0,
-      clickWage: 0.75,
-      promotionCost: 400, // Was 800
-      workSessionsRequired: 20, // Was 30
+      baseWage: 40.0,
+      clickWage: 4.0,
+      promotionCost: 400,
+      workSessionsRequired: 6,
       canTradeAtWork: false, // Open office, no privacy
     ),
     CareerLevel(
       id: 'senior',
       title: 'Senior Associate',
       emoji: '📊',
-      baseWage: 25.0,
-      clickWage: 1.25,
-      promotionCost: 2000, // Was 3000
-      workSessionsRequired: 40, // Was 60
+      baseWage: 80.0,
+      clickWage: 8.0,
+      promotionCost: 1500,
+      workSessionsRequired: 10,
       canTradeAtWork: true, // You have your own desk now
     ),
     CareerLevel(
       id: 'manager',
       title: 'Manager',
       emoji: '👨‍💼',
-      baseWage: 45.0,
-      clickWage: 2.25,
-      promotionCost: 10000, // Was 12000
-      workSessionsRequired: 80, // Was 100
+      baseWage: 150.0,
+      clickWage: 15.0,
+      promotionCost: 5000,
+      workSessionsRequired: 15,
       canTradeAtWork: true, // Private office
     ),
     CareerLevel(
       id: 'director',
       title: 'Director',
       emoji: '🎯',
-      baseWage: 80.0,
-      clickWage: 4.0,
-      promotionCost: 50000,
-      workSessionsRequired: 200,
+      baseWage: 300.0,
+      clickWage: 30.0,
+      promotionCost: 25000,
+      workSessionsRequired: 25,
       canTradeAtWork: true, // Nobody questions you
     ),
     CareerLevel(
       id: 'vp',
       title: 'Vice President',
       emoji: '🏆',
-      baseWage: 150.0,
-      clickWage: 7.5,
-      promotionCost: 200000,
-      workSessionsRequired: 400,
+      baseWage: 600.0,
+      clickWage: 60.0,
+      promotionCost: 100000,
+      workSessionsRequired: 40,
       canTradeAtWork: true, // You ARE the boss
     ),
     CareerLevel(
       id: 'executive',
       title: 'Executive',
       emoji: '👑',
-      baseWage: 300.0,
-      clickWage: 15.0,
-      promotionCost: 1000000,
-      workSessionsRequired: 800,
+      baseWage: 1200.0,
+      clickWage: 120.0,
+      promotionCost: 500000,
+      workSessionsRequired: 60,
       canTradeAtWork: true, // You make the rules
     ),
   ];
